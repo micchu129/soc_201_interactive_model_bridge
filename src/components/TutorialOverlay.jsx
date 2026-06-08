@@ -13,7 +13,7 @@ export default function TutorialOverlay({ step, onNext, onSkip }) {
     <h2>{steps[step][0]}</h2>
     <p>{steps[step][1]}</p>
     <div className="button-row">
-      {!confirmSkip ? <button className="button secondary" onClick={() => setConfirmSkip(true)}>Skip tutorial</button> : <><button className="button secondary" onClick={() => setConfirmSkip(false)}>Keep tutorial</button><button className="button danger-button" onClick={onSkip}>Yes, skip</button></>}
+      {step < 2 && (!confirmSkip ? <button className="button secondary" onClick={() => setConfirmSkip(true)}>Skip tutorial</button> : <><button className="button secondary" onClick={() => setConfirmSkip(false)}>Keep tutorial</button><button className="button danger-button" onClick={onSkip}>Yes, skip</button></>)}
       <button className="button primary" onClick={onNext}>{step === 2 ? 'Finish' : 'Next'}</button>
     </div>
   </section>

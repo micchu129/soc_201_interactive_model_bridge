@@ -34,9 +34,10 @@ button { cursor: pointer; }
 .center-control h2, .mode-caption h2, .policy-panel h2, .modal-card h2, .options-card h2 { font-size: 2rem; margin: .25rem 0 .5rem; }
 .muted { color: #8fa0ad; font-size: .82rem; }
 .progress { height: .45rem; border-radius: 999px; background: #ffffff12; overflow: hidden; margin: 1.2rem 0; }
-.progress span { display: block; height: 100%; background: linear-gradient(90deg, #7ed9ed, #9f8aea); transition: width .5s; }
-.mode-caption { position: fixed; z-index: 10; left: 1.5rem; bottom: 1.5rem; width: min(32rem, calc(100vw - 3rem)); padding: 1.2rem 1.4rem; pointer-events: none; }
+.progress span { display: block; min-width: .35rem; height: 100%; background: linear-gradient(90deg, #7ed9ed, #9f8aea); }
+.mode-caption { position: fixed; z-index: 10; left: 1.5rem; bottom: 1.5rem; width: min(32rem, calc(100vw - 3rem)); padding: 1.2rem 1.4rem; }
 .mode-caption p:last-child { color: #a8b8c4; margin-bottom: 0; }
+.caption-close { position: absolute; right: .7rem; top: .7rem; border: 0; background: transparent; color: #a9bbc6; font-size: 1rem; }
 .icon-button { display: grid; place-items: center; min-width: 2.5rem; height: 2.5rem; border: 1px solid #405366; border-radius: 50%; background: #0d1824dd; color: #dceaf1; }
 .details-panel { position: fixed; z-index: 15; width: min(30rem, calc(100vw - 3rem)); max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; transform: translate(-50%, 0); }
 .drag-handle { cursor: move; user-select: none; }

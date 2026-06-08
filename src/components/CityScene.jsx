@@ -11,7 +11,7 @@ const cameraTargets = {
   micro: { position: [8, 7, 9], target: [0, 0, 0], up: [0, 1, 0] },
   meso: { position: [11, 11, 13], target: [0, 0, 0], up: [0, 1, 0] },
   macro: { position: [0, 18, .001], target: [0, 0, 0], up: [0, 0, -1] },
-  street: { position: [7, 3.8, 8], target: [0, 0, 0], up: [0, 1, 0] },
+  street: { position: [0, 1.15, 11.5], target: [0, .55, 0], up: [0, 1, 0] },
   district: { position: [10, 9, 11], target: [0, 0, 0], up: [0, 1, 0] },
   top: { position: [0, 18, .001], target: [0, 0, 0], up: [0, 0, -1] },
 }
@@ -143,15 +143,16 @@ function Building({ building, generationProgress, onSelect, occupants, buildingI
 
 function Agent({ agent, selected, highlighted, onSelect }) {
   const group = useRef()
-  const [initialPosition] = useState(() => [center(agent.position.x), agent.spawnDrop ? 4 : .55, center(agent.position.z)])
-  useFrame(() => {
+  const [initialPosition] = useState(() => [center(agent.position.x), agent.spawnDrop ? 4 : .47, center(agent.position.z)])
+  useFrame((_, delta) => {
     if (!group.current) return
-    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, center(agent.position.x), .12)
-    group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, center(agent.position.z), .12)
-    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, .55, agent.spawnDrop ? .045 : .15)
+    const smoothing = 1 - Math.exp(-delta * 12)
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, center(agent.position.x), smoothing)
+    group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, center(agent.position.z), smoothing)
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, .47, agent.spawnDrop ? 1 - Math.exp(-delta * 3) : smoothing)
   })
   return <group ref={group} position={initialPosition} onClick={event => { event.stopPropagation(); onSelect(agent.id) }}>
-    <Billboard follow><mesh position={[0, .12, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh position={[0, -.14, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.24, 3, 0, Math.PI * 2]} /><meshBasicMaterial color={agent.color} transparent opacity={.98} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[.28, .33, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
+    <Billboard follow><group visible={agent.renderMode !== 'dot'}><mesh position={[0, .12, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh position={[0, -.105, 0]} scale={selected ? 1.35 : 1}><bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-.18, 0, 0, .18, 0, 0, 0, -.34, 0]), 3]} /></bufferGeometry><meshBasicMaterial color={agent.color} side={THREE.DoubleSide} depthTest /></mesh></group><mesh visible={agent.renderMode === 'dot'}><circleGeometry args={[.15, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[.28, .33, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
   </group>
 }
 
@@ -190,13 +191,14 @@ function SelectionAnchor({ selectedAgent, selectedBuilding, agents, onAnchorChan
 }
 
 export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, findTarget, onCustomView, onSelectAgent, onSelectBuilding, onAnchorChange, cameraResetKey }) {
+  const renderedAgents = mode === 'macro' ? agents.map(agent => ({ ...agent, renderMode: 'dot' })) : agents
   return <Canvas camera={{ position: [10, 10, 12], fov: 48 }} dpr={[1, 1.6]} onPointerMissed={() => onSelectBuilding(null)}>
     <color attach="background" args={[colors.background]} /><ambientLight intensity={1.7} /><directionalLight position={[5, 10, 6]} intensity={2.2} />
     <mesh position={[0, -.08, 0]}><boxGeometry args={[13.6, .12, 13.6]} /><meshStandardMaterial color={colors.ground} /></mesh>
     <gridHelper args={[13, 13, '#365062', '#233847']} position={[0, 0, 0]} />
     {world?.roads.map(road => <Road key={`${road.x}-${road.z}`} road={road} generationProgress={generationProgress} />)}
     {world?.buildings.map((building, index) => <Building key={building.id} building={building} buildingIndex={index} generationProgress={generationProgress} onSelect={onSelectBuilding} highlighted={building.id === highlightedBuilding} occupants={agents.filter(agent => agent.insideBuildingId === building.id)} />)}
-    {populationStage >= 2 && agents.filter(agent => !agent.insideBuildingId).map(agent => <Agent key={agent.id} agent={agent} selected={agent.id === selectedAgent} highlighted={agent.id === highlightedAgent} onSelect={onSelectAgent} />)}
+    {populationStage >= 2 && renderedAgents.filter(agent => !agent.insideBuildingId).map(agent => <Agent key={agent.id} agent={agent} selected={agent.id === selectedAgent} highlighted={agent.id === highlightedAgent} onSelect={onSelectAgent} />)}
     <NetworkOverlay mode={mode} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} buildings={world?.buildings || []} />
     <CameraRig mode={mode} cameraPreset={cameraPreset} followedAgent={followedAgent} findTarget={findTarget} agents={agents} cameraResetKey={cameraResetKey} onCustomView={onCustomView} />
     <SelectionAnchor selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} onAnchorChange={onAnchorChange} />
