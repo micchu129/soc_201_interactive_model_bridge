@@ -4,12 +4,14 @@ export function decideAction(agent, calendar, policies, venues) {
   if (agent.health < 35) return { activity: 'hospitalized', destination: venues.hospital[0] }
   if (agent.stage >= 6 && Math.random() < policies.treatmentAccess / 240) return { activity: 'seeking treatment', destination: venues.rehab[0] }
   const evening = Number(calendar.time.slice(0, 2)) >= 18 || Number(calendar.time.slice(0, 2)) < 4
+  const hour = Number(calendar.time.slice(0, 2))
+  if (hour >= 2 && hour < 8) return { activity: 'going home', destination: agent.home }
   const drinkChance = Math.max(0.02, (agent.stage * 0.06 + (calendar.weekend ? 0.18 : 0) - policies.prevention / 400))
   if (evening && Math.random() < drinkChance) {
     const destination = agent.stage > 4 ? venues.club[agent.id % venues.club.length] : venues.bar[agent.id % venues.bar.length]
     return { activity: 'going to drink', destination }
   }
-  if (Math.random() < 0.12) return { activity: 'buying alcohol', destination: venues.shop[agent.id % venues.shop.length] }
+  if (Math.random() < (evening ? 0.18 : 0.08)) return { activity: 'buying alcohol', destination: venues.shop[agent.id % venues.shop.length] }
   return { activity: 'going home', destination: agent.home }
 }
 

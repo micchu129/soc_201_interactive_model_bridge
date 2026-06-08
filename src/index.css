@@ -53,7 +53,7 @@ button { cursor: pointer; }
 .sim-controls span { display: block; color: #8ca0af; font-size: .62rem; }
 .speed-controls { display: flex; }
 .speed-controls button { min-width: 2.4rem; padding: .55rem .45rem; }
-.directory-button { position: fixed; z-index: 20; left: 1rem; top: 8rem; width: auto; height: auto; min-height: 2.4rem; padding: .55rem .85rem; border: 1px solid #405366; border-radius: .7rem; color: #dce8ee; font-size: .62rem; }
+.directory-button { position: fixed; z-index: 20; left: 1rem; top: 9.6rem; width: auto; height: auto; min-height: 2.4rem; padding: .55rem .85rem; border: 1px solid #405366; border-radius: .7rem; color: #dce8ee; font-size: .62rem; }
 .camera-help { position: fixed; z-index: 30; right: 1rem; top: 4.2rem; width: min(25rem, calc(100vw - 2rem)); padding: 1rem; }
 .camera-help p { color: #a8bac6; margin: .45rem 0; }
 .help-button { position: fixed; z-index: 25; right: 1rem; bottom: 1rem; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 1px solid #405366; border-radius: 50%; color: #e8f6fb; font-weight: 700; }
@@ -98,7 +98,7 @@ button { cursor: pointer; }
 .tutorial-overlay { position: fixed; z-index: 50; left: 50%; bottom: 2rem; transform: translateX(-50%); width: min(42rem, 92vw); padding: 1.4rem; }
 .tutorial-overlay h2 { font-size: 2rem; margin: .2rem 0; }
 .danger-button { color: #ffadb7; border-color: #c85868; }
-.directory-panel { position: fixed; z-index: 35; left: 1rem; top: 11rem; width: min(34rem, calc(100vw - 2rem)); max-height: calc(100vh - 12rem); padding: 1rem; }
+.directory-panel { position: fixed; z-index: 35; left: 1rem; top: 12.5rem; width: min(34rem, calc(100vw - 2rem)); max-height: calc(100vh - 13.5rem); padding: 1rem; }
 .search-input { width: 100%; margin: .75rem 0; padding: .7rem; border: 1px solid #405163; border-radius: .6rem; background: #07101a; color: #edf5fa; }
 .agent-list { max-height: calc(100vh - 13rem); overflow-y: auto; display: grid; gap: .45rem; }
 .agent-list article { display: flex; justify-content: space-between; gap: .7rem; padding: .65rem; border-radius: .65rem; background: #ffffff08; }

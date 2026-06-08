@@ -21,7 +21,7 @@ const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms))
 const initialState = {
   mode: 'hero', worldStage: 0, populationStage: 0, world: createWorld(worldDefaults), agents: [],
   worldOptions: worldDefaults, populationOptions: populationDefaults, policies: policyDefaults,
-  pendingPolicies: null, simMinutes: 0, speed: 0, calendar: { day: 'Saturday', week: 1, time: '00:00', weekend: true }, history: [],
+  pendingPolicies: null, simMinutes: 0, speed: 0, calendar: { day: 'Saturday', week: 1, time: '00:00', period: 'Night', weekend: true }, history: [],
 }
 
 function loadState() {
@@ -178,7 +178,7 @@ export default function ModelBridge() {
   }
 
   return <main className={`app-shell ${state.mode === 'macro' ? 'macro-layout' : ''}`}>
-    <div className={`canvas-layer ${state.mode === 'macro' ? 'macro-canvas' : ''}`}><CityScene world={state.world} generationProgress={generationProgress} agents={state.agents} populationStage={state.populationStage} mode={activeMode} cameraPreset={cameraPreset} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} followedAgent={followedAgent} highlightedAgent={highlightedAgent} highlightedBuilding={highlightedBuilding} findTarget={findTarget} cameraResetKey={cameraResetKey} onCustomView={() => setCameraPreset('custom')} onAnchorChange={setDetailAnchor} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} /></div>
+    <div className={`canvas-layer ${state.mode === 'macro' ? 'macro-canvas' : ''}`}><CityScene world={state.world} generationProgress={generationProgress} agents={state.agents} populationStage={state.populationStage} mode={activeMode} cameraPreset={cameraPreset} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} followedAgent={followedAgent} highlightedAgent={highlightedAgent} highlightedBuilding={highlightedBuilding} findTarget={findTarget} simMinutes={state.simMinutes} cameraResetKey={cameraResetKey} onCustomView={() => setCameraPreset('custom')} onAnchorChange={setDetailAnchor} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} /></div>
     <header className="topbar"><button className="brand" onClick={() => changeMode('hero')}>SIMARC / MODEL BRIDGE</button>{['micro', 'meso', 'macro'].includes(state.mode) && tutorialStep == null && <div className="mode-nav">{['micro', 'meso', 'macro'].map(mode => <button key={mode} className={state.mode === mode ? 'active' : ''} onClick={() => changeMode(mode)}>{mode}</button>)}</div>}<button className="icon-button" onClick={() => { closePanels(); setPanel('settings') }}>⚙</button></header>
 
     {state.mode === 'hero' && <section className="hero-overlay"><p className="kicker">Enter the model</p><h1>SimARC Bridge</h1><p>A playable interface for translating alcohol models into policy conversations.</p><button className="button primary" onClick={state.worldStage > 0 ? () => changeMode(state.agents.length ? 'micro' : 'population') : generateWorld}>{state.worldStage > 0 ? 'Resume model' : 'Initialize model'}</button>{state.worldStage === 0 && <button className="advanced-link" onClick={() => openAdvanced('world')}>Advanced options</button>}</section>}
@@ -192,7 +192,7 @@ export default function ModelBridge() {
       {[['default', 'Default', '◇'], ['street', 'Street', '▥'], ['top', 'Top', '▦'], ['custom', 'Custom', '✥']].map(([preset, label, icon]) => <button key={preset} className={(cameraPreset || 'default') === preset ? 'active' : ''} title={label} disabled={preset === 'custom'} onClick={() => { setFollowedAgent(null); setFindTarget(null); setCameraPreset(preset === 'default' ? null : preset); setCameraResetKey(key => key + 1) }}><b>{icon}</b><small>{label}</small></button>)}
     </nav>}
 
-    {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <footer className="sim-controls panel"><div><strong>{state.calendar.time}</strong><span>{state.calendar.day} · Week {state.calendar.week}</span></div><div className="speed-controls">{speedOptions.map(speed => <button key={speed} className={state.speed === speed ? 'active' : ''} onClick={() => setState(current => ({ ...current, speed }))}>{speed === 0 ? '❚❚' : speed === 1 ? '▶' : `${speed}×`}</button>)}</div></footer>}
+    {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <footer className="sim-controls panel"><div><strong>{state.calendar.time}</strong><span>{state.calendar.day} · Week {state.calendar.week} · {state.calendar.period}</span></div><div className="speed-controls">{speedOptions.map(speed => <button key={speed} className={state.speed === speed ? 'active' : ''} onClick={() => setState(current => ({ ...current, speed }))}>{speed === 0 ? '❚❚' : speed === 1 ? '▶' : `${speed}×`}</button>)}</div></footer>}
     {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <button className="directory-button panel" onClick={() => { closePanels(); setPanel('directory') }}>☷ Agent Directory</button>}
     {state.worldStage > 0 && state.mode !== 'hero' && <button className="help-button panel" onClick={() => { closePanels(); setPanel('camera-help') }}>?</button>}
 

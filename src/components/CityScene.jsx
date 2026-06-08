@@ -29,6 +29,7 @@ function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, came
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up) }
   }, [])
   useEffect(() => {
+    if (cameraPreset === 'custom' && !findTarget) return
     const preset = cameraTargets[cameraPreset] || cameraTargets[mode]
     const targetCamera = camera.clone()
     const target = findTarget ? new THREE.Vector3(center(findTarget.x), .5, center(findTarget.z)) : new THREE.Vector3(...preset.target)
@@ -88,7 +89,7 @@ function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, came
       THREE.MathUtils.clamp(camera.position.z, -16, 16),
     )
   }
-  return <OrbitControls ref={controls} makeDefault enabled={followedAgent == null && mode !== 'macro'} minPolarAngle={.25} maxPolarAngle={Math.PI / 2.08} minDistance={7} maxDistance={25} target={[0, 0, 0]} onStart={() => onCustomView?.()} onChange={constrainControls} />
+  return <OrbitControls ref={controls} makeDefault enabled={followedAgent == null && mode !== 'macro'} minPolarAngle={.25} maxPolarAngle={Math.PI / 2.08} minDistance={7} maxDistance={25} target={[0, 0, 0]} onStart={() => { transition.current = null; onCustomView?.() }} onChange={constrainControls} />
 }
 
 function Road({ road, generationProgress }) {
@@ -152,7 +153,7 @@ function Agent({ agent, selected, highlighted, onSelect }) {
     group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, .47, agent.spawnDrop ? 1 - Math.exp(-delta * 3) : smoothing)
   })
   return <group ref={group} position={initialPosition} onClick={event => { event.stopPropagation(); onSelect(agent.id) }}>
-    <Billboard follow><group visible={agent.renderMode !== 'dot'}><mesh position={[0, .12, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh position={[0, -.105, 0]} scale={selected ? 1.35 : 1}><bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-.18, 0, 0, .18, 0, 0, 0, -.34, 0]), 3]} /></bufferGeometry><meshBasicMaterial color={agent.color} side={THREE.DoubleSide} depthTest /></mesh></group><mesh visible={agent.renderMode === 'dot'}><circleGeometry args={[.15, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[.28, .33, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
+    <Billboard follow><group visible={agent.renderMode !== 'dot'}><mesh position={[0, .1, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh position={[0, -.02, 0]} scale={selected ? 1.35 : 1}><bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-.18, 0, 0, .18, 0, 0, 0, -.36, 0]), 3]} /></bufferGeometry><meshBasicMaterial color={agent.color} side={THREE.DoubleSide} depthTest /></mesh></group><mesh visible={agent.renderMode === 'dot'}><circleGeometry args={[.15, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[.28, .33, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
   </group>
 }
 
@@ -170,7 +171,14 @@ function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildin
     ? [...(agent.socialIds || []).map(id => agents.find(item => item.id === id)).filter(Boolean), agent.home, buildings.find(item => item.id === agent.favoriteVenueId)].filter(Boolean)
     : agents.filter(item => item.favoriteVenueId === selectedBuilding.id || item.home.id === selectedBuilding.id || item.insideBuildingId === selectedBuilding.id)
   const sourcePoint = worldPoint(source, buildings)
-  return <group>{links.map((target, index) => <Line key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < (agent.socialIds?.length || 0) ? '#7ed9ed' : '#e6bd58') : target.color} lineWidth={2.5} transparent opacity={.8} />)}</group>
+  return <group>{links.map((target, index) => <Line key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < (agent.socialIds?.length || 0) ? '#7ed9ed' : '#ffd84d') : '#ffd84d'} lineWidth={6} transparent opacity={.95} />)}</group>
+}
+
+function DayNight({ simMinutes }) {
+  const minute = simMinutes % 1440
+  const daylight = THREE.MathUtils.smoothstep(minute, 300, 420) * (1 - THREE.MathUtils.smoothstep(minute, 1020, 1140))
+  const background = new THREE.Color('#050810').lerp(new THREE.Color('#13283a'), daylight)
+  return <><color attach="background" args={[background]} /><ambientLight intensity={.55 + daylight * 1.25} /><directionalLight color={daylight > .4 ? '#fff4d6' : '#7397bd'} position={[5, 10, 6]} intensity={.35 + daylight * 1.9} /></>
 }
 
 function SelectionAnchor({ selectedAgent, selectedBuilding, agents, onAnchorChange }) {
@@ -190,10 +198,10 @@ function SelectionAnchor({ selectedAgent, selectedBuilding, agents, onAnchorChan
   return null
 }
 
-export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, findTarget, onCustomView, onSelectAgent, onSelectBuilding, onAnchorChange, cameraResetKey }) {
+export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, findTarget, simMinutes, onCustomView, onSelectAgent, onSelectBuilding, onAnchorChange, cameraResetKey }) {
   const renderedAgents = mode === 'macro' ? agents.map(agent => ({ ...agent, renderMode: 'dot' })) : agents
   return <Canvas camera={{ position: [10, 10, 12], fov: 48 }} dpr={[1, 1.6]} onPointerMissed={() => onSelectBuilding(null)}>
-    <color attach="background" args={[colors.background]} /><ambientLight intensity={1.7} /><directionalLight position={[5, 10, 6]} intensity={2.2} />
+    <DayNight simMinutes={simMinutes} />
     <mesh position={[0, -.08, 0]}><boxGeometry args={[13.6, .12, 13.6]} /><meshStandardMaterial color={colors.ground} /></mesh>
     <gridHelper args={[13, 13, '#365062', '#233847']} position={[0, 0, 0]} />
     {world?.roads.map(road => <Road key={`${road.x}-${road.z}`} road={road} generationProgress={generationProgress} />)}

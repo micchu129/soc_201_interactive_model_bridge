@@ -93,7 +93,7 @@ export function createPopulation(options, world) {
       cash: 120 + (index * 31) % 480, health: 72 + index % 28, sanity: 70 + (index * 3) % 30,
       stage, useMode: stage < 3 ? 'Just-A-Drink' : stage < 6 ? "Let's Rock" : 'Get-Smashed',
       bac: 0, weeklyUnits: 0, activity: 'at home', home, position: { x: home.x, z: home.z }, target: { x: home.x, z: home.z },
-      route: [], routeIndex: 0, progress: 1, insideBuildingId: home.id, activityUntil: 0,
+      route: [], routeIndex: 0, progress: 1, segmentStart: { x: home.x, z: home.z }, insideBuildingId: home.id, activityUntil: 0,
       departureDelay: index % 50, speed: 0.25 + (index % 7) * 0.025, color: colors.agentStages[stage - 1], highlighted: false,
       favoriteVenueId: venues[(index * 3 + stage) % venues.length].id,
       socialIds: [1, 7, 13].map(offset => (index + offset) % options.populationSize),
@@ -104,51 +104,71 @@ export function createPopulation(options, world) {
       },
     }
     if (seedMode === 0 || seedMode === 1) return base
-    if (seedMode === 2) return { ...base, insideBuildingId: venue.id, position: { x: venue.x, z: venue.z }, activity: venue.type === 'shop' ? 'buying alcohol' : 'drinking', activityUntil: 25 + index % 40 }
+    if (seedMode === 2) return { ...base, insideBuildingId: venue.id, position: { x: venue.x, z: venue.z }, segmentStart: { x: venue.x, z: venue.z }, activity: venue.type === 'shop' ? 'buying alcohol' : 'drinking', activityUntil: 25 + index % 40, weeklyUnits: venue.type === 'shop' ? 0 : Math.max(1, Math.round(stage / 2)), bac: venue.type === 'shop' ? 0 : .08 + stage * .03 }
     const target = nearestRoad(home)
-    return { ...base, insideBuildingId: null, position: { x: roadCell.x, z: roadCell.z }, target, route: buildRoadRoute(roadCell, target, world), routeIndex: 0, progress: 0, intendedActivity: 'going home', destination: home, activity: 'travelling home', travelStart: 0 }
+    return { ...base, insideBuildingId: null, position: { x: roadCell.x, z: roadCell.z }, segmentStart: { x: roadCell.x, z: roadCell.z }, target, route: buildRoadRoute(roadCell, target, world), routeIndex: 0, progress: 0, intendedActivity: 'going home', destination: home, activity: 'travelling home', travelStart: 0 }
   })
 }
 
 export function decisionTick(state) {
   const calendar = calendarFromMinutes(state.simMinutes)
-  const venues = state.world.buildings.reduce((groups, building) => {
-    groups[building.type] ||= []
-    groups[building.type].push(building)
-    return groups
-  }, {})
+  const venues = groupVenues(state.world)
   let agents = state.agents.map(agent => {
     const aged = { ...agent, bac: Math.max(0, agent.bac - 0.15) }
     if (aged.route.length || state.simMinutes < aged.activityUntil) return aged
-    const decision = decideAction(aged, calendar, state.policies, venues)
-    if (!decision?.destination) return aged
-    const route = buildRoute(aged.position, decision.destination, state.world)
-    return {
-      ...aged, ...decision, intendedActivity: decision.activity, insideBuildingId: null, route, routeIndex: 0,
-      target: route[0] || decision.destination, progress: 0, travelStart: state.simMinutes + aged.departureDelay,
-      activity: `preparing to travel to ${decision.destination.type}`,
-    }
+    return scheduleAgent(aged, state, calendar, venues)
   })
   if (state.simMinutes > 0 && state.simMinutes % (7 * 1440) === 0) agents = agents.map(updateStage)
   return { ...state, agents, calendar }
 }
 
 export function advanceRender(state, simulatedMinutes) {
+  const nextMinutes = state.simMinutes + simulatedMinutes
+  const calendar = calendarFromMinutes(nextMinutes)
+  const venues = groupVenues(state.world)
   const agents = state.agents.map(agent => {
-    if (!agent.route.length) return agent
+    if (!agent.route.length) {
+      if (nextMinutes >= agent.activityUntil) return scheduleAgent(agent, { ...state, simMinutes: nextMinutes }, calendar, venues, 0)
+      return { ...agent, bac: Math.max(0, agent.bac - simulatedMinutes * .0012) }
+    }
     if (state.simMinutes < (agent.travelStart || 0)) return agent
     const progress = Math.min(1, agent.progress + simulatedMinutes * agent.speed / 2.5)
+    const segmentStart = agent.segmentStart || agent.position
     const position = {
-      x: agent.position.x + (agent.target.x - agent.position.x) * Math.min(1, simulatedMinutes * agent.speed / 2.5),
-      z: agent.position.z + (agent.target.z - agent.position.z) * Math.min(1, simulatedMinutes * agent.speed / 2.5),
+      x: segmentStart.x + (agent.target.x - segmentStart.x) * progress,
+      z: segmentStart.z + (agent.target.z - segmentStart.z) * progress,
     }
-    if (progress < 1) return { ...agent, position, progress, activity: `travelling to ${agent.destination.type}` }
+    if (progress < 1) return { ...agent, segmentStart, position, progress, activity: `travelling to ${agent.destination.type}` }
     const routeIndex = agent.routeIndex + 1
-    if (routeIndex < agent.route.length) return { ...agent, position: agent.target, routeIndex, target: agent.route[routeIndex], progress: 0 }
+    if (routeIndex < agent.route.length) return { ...agent, position: agent.target, segmentStart: agent.target, routeIndex, target: agent.route[routeIndex], progress: 0 }
     const arrived = applyArrival({ ...agent, position: agent.target, route: [], routeIndex: 0, progress: 1 }, state.policies)
-    return { ...arrived, insideBuildingId: agent.destination.id, activityUntil: state.simMinutes + 35 + agent.id % 70 }
+    return { ...arrived, segmentStart: agent.target, insideBuildingId: agent.destination.id, activityUntil: nextMinutes + 35 + agent.id % 70 }
   })
-  return { ...state, agents, simMinutes: state.simMinutes + simulatedMinutes, calendar: calendarFromMinutes(state.simMinutes + simulatedMinutes) }
+  return { ...state, agents, simMinutes: nextMinutes, calendar }
+}
+
+function groupVenues(world) {
+  return world.buildings.reduce((groups, building) => {
+    groups[building.type] ||= []
+    groups[building.type].push(building)
+    return groups
+  }, {})
+}
+
+function scheduleAgent(agent, state, calendar, venues, delay = agent.departureDelay) {
+  const decision = decideAction(agent, calendar, state.policies, venues)
+  if (!decision?.destination) return agent
+  if (agent.insideBuildingId === decision.destination.id) return {
+    ...agent,
+    activity: decision.destination.type === 'home' ? 'resting at home' : agent.activity,
+    activityUntil: state.simMinutes + 60,
+  }
+  const route = buildRoute(agent.position, decision.destination, state.world)
+  return {
+    ...agent, ...decision, intendedActivity: decision.activity, insideBuildingId: null, route, routeIndex: 0,
+    segmentStart: agent.position, target: route[0] || decision.destination, progress: 0, travelStart: state.simMinutes + delay,
+    activity: `preparing to travel to ${decision.destination.type}`,
+  }
 }
 
 function nearestRoad(position) {

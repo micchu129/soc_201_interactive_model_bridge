@@ -7,10 +7,12 @@ export function calendarFromMinutes(totalMinutes) {
   const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
   const hours = String(Math.floor(minuteOfDay / 60)).padStart(2, '0')
   const minutes = String(Math.floor(minuteOfDay % 60)).padStart(2, '0')
+  const period = minuteOfDay >= 360 && minuteOfDay < 1080 ? 'Daylight' : 'Night'
   return {
     day: days[dayIndex % 7],
     week: Math.floor(dayIndex / 7) + 1,
     time: `${hours}:${minutes}`,
+    period,
     weekend: dayIndex % 7 === 0 || dayIndex % 7 === 1 || (dayIndex % 7 === 6 && minuteOfDay >= 1080),
   }
 }
