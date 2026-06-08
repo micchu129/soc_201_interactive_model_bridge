@@ -14,19 +14,20 @@ export function decideAction(agent, calendar, policies, venues) {
 }
 
 export function applyArrival(agent, policies) {
-  if (agent.activity === 'going to drink' || agent.activity === 'buying alcohol') {
+  const activity = agent.intendedActivity || agent.activity
+  if (activity === 'going to drink' || activity === 'buying alcohol') {
     const units = Math.max(1, Math.round(agent.stage / 2))
     return {
       ...agent,
-      activity: agent.activity === 'going to drink' ? 'drinking' : 'carrying alcohol',
+      activity: activity === 'going to drink' ? 'drinking' : 'carrying alcohol',
       cash: Math.max(0, agent.cash - units * policies.alcoholPrice),
       bac: Math.min(3, agent.bac + units * (agent.gender === 'F' ? 0.14 : 0.11)),
       weeklyUnits: agent.weeklyUnits + units,
       health: Math.max(0, agent.health - Math.max(0, units - 2) * 0.4),
     }
   }
-  if (agent.activity === 'hospitalized') return { ...agent, activity: 'recovering', health: Math.min(100, agent.health + 8) }
-  if (agent.activity === 'seeking treatment') return { ...agent, activity: 'in treatment', stage: Math.max(1, agent.stage - 1), bac: 0 }
+  if (activity === 'hospitalized') return { ...agent, activity: 'recovering', health: Math.min(100, agent.health + 8) }
+  if (activity === 'seeking treatment') return { ...agent, activity: 'in treatment', stage: Math.max(1, agent.stage - 1), bac: 0 }
   return { ...agent, activity: 'resting', health: Math.min(100, agent.health + 0.2) }
 }
 

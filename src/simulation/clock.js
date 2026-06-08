@@ -1,5 +1,5 @@
 export const SIM_MINUTES_PER_DECISION_TICK = 120
-export const speedOptions = [0, 1, 4, 12]
+export const speedOptions = [0, 1, 2, 4, 12]
 
 export function calendarFromMinutes(totalMinutes) {
   const dayIndex = Math.floor(totalMinutes / 1440)
