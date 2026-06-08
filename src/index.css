@@ -47,6 +47,22 @@ button, input { font: inherit; }
   padding: clamp(1.25rem, 1rem + .8vw, 2rem);
 }
 
+.nav-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(10, 20, 32, .86);
+  color: #dff8ff;
+  font-size: 1.2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  transition: .2s ease;
+}
+.nav-arrow:hover:not(:disabled) { background: #67e8f9; color: #06111a; transform: scale(1.06); }
+.nav-arrow:disabled { color: #415064; opacity: .55; cursor: not-allowed; }
+
 .range {
   appearance: none;
   width: 100%;

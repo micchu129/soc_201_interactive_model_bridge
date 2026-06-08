@@ -16,7 +16,7 @@ export default function PolicyLab({ visible }) {
   const [policies, setPolicies] = useState(defaultPolicies)
   const outcomes = useMemo(() => calculateOutcomes(policies), [policies])
   return (
-    <section className={`absolute inset-0 z-50 overflow-y-auto bg-[#05070df2] px-4 py-16 transition-opacity duration-700 lg:px-10 ${visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+    <section data-policy-lab className={`absolute inset-0 z-50 overflow-y-auto bg-[#05070df2] px-4 py-16 transition-opacity duration-700 lg:px-10 ${visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
       <div className="mx-auto max-w-6xl">
         <p className="eyebrow uppercase tracking-[.35em] text-cyan-300">Scene 07 / Policy Lab</p>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-4xl font-light md:text-6xl">Change the system.</h2><p className="mt-2 max-w-2xl text-base text-slate-400">Explore how policy levers move outcomes across agents, networks, and institutions.</p></div><span className="rounded-full border border-emerald-300/20 bg-emerald-300/8 px-4 py-2 text-sm text-emerald-300">Live illustrative model</span></div>

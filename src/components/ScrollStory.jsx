@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion'
 import { agents } from '../data/worldConfig'
 import AgentProfile from './AgentProfile'
 import IsometricWorld from './IsometricWorld'
 import PolicyLab from './PolicyLab'
+import SceneNavigation from './SceneNavigation'
 
 const setupStatus = ['Waiting for setup', 'Generating streets', 'Placing locations', 'World ready']
 const populationStatus = ['No agents generated', 'Creating population', 'Assigning attributes', 'Population ready']
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+const sceneNotches = [0, .16, .32, .47, .6, .73, .9]
 
 export default function ScrollStory() {
   const container = useRef(null)
@@ -16,19 +18,37 @@ export default function ScrollStory() {
   const [progress, setProgress] = useState(0)
   const [selectedAgent, setSelectedAgent] = useState(3)
   const [movingAgents, setMovingAgents] = useState(() => agents.map(agent => ({ ...agent })))
+  const [activeScene, setActiveScene] = useState(0)
+  const [policyUnlocked, setPolicyUnlocked] = useState(false)
+  const snapTimer = useRef(null)
   const { scrollYProgress } = useScroll({ target: container, offset: ['start start', 'end end'] })
-  useMotionValueEvent(scrollYProgress, 'change', setProgress)
+  const maxUnlockedScene = worldStage < 3 ? 1 : populationStage < 3 ? 2 : policyUnlocked ? 6 : 5
+  const navigateTo = useCallback((scene, behavior = 'smooth') => {
+    if (!container.current) return
+    const safeScene = Math.max(0, Math.min(scene, maxUnlockedScene))
+    const scrollRange = container.current.offsetHeight - window.innerHeight
+    window.scrollTo({ top: scrollRange * sceneNotches[safeScene], behavior })
+    setActiveScene(safeScene)
+  }, [maxUnlockedScene])
+
+  useMotionValueEvent(scrollYProgress, 'change', latest => {
+    setProgress(latest)
+    const nearest = sceneNotches.reduce((best, notch, index) => Math.abs(notch - latest) < Math.abs(sceneNotches[best] - latest) ? index : best, 0)
+    setActiveScene(Math.min(nearest, maxUnlockedScene))
+    window.clearTimeout(snapTimer.current)
+    snapTimer.current = window.setTimeout(() => navigateTo(nearest), 180)
+  })
   const heroOpacity = useTransform(scrollYProgress, [0, .08, .14], [1, .2, 0])
   const worldOpacity = useTransform(scrollYProgress, [.08, .18], [0, 1])
   const worldScale = useTransform(scrollYProgress, [.12, .38, .57], [2, 2, 4.8])
   const worldX = useTransform(scrollYProgress, [.38, .57], [0, 0])
   const worldY = useTransform(scrollYProgress, [.38, .57], [0, 0])
-  const setupVisible = progress > .12 && progress < .34 && worldStage < 3
-  const populationVisible = progress >= .29 && progress < .49 && populationStage < 3
-  const profileVisible = progress >= .53 && progress < .73
-  const networkVisible = progress >= .67 && progress < .84
-  const policyVisible = progress >= .82
-  const focusActive = progress >= .48 && progress < .82
+  const setupVisible = activeScene === 1 && worldStage < 3
+  const populationVisible = activeScene === 2 && populationStage < 3
+  const profileVisible = activeScene === 4
+  const networkVisible = activeScene === 5
+  const policyVisible = activeScene === 6
+  const focusActive = activeScene >= 3 && activeScene <= 5
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -43,11 +63,40 @@ export default function ScrollStory() {
   }, [populationStage])
 
   useEffect(() => {
-    const maxProgress = worldStage < 3 ? .275 : populationStage < 3 ? .465 : 1
-    if (progress <= maxProgress || !container.current) return
+    const maxProgress = sceneNotches[maxUnlockedScene]
+    if (progress <= maxProgress + .004 || !container.current) return
     const scrollRange = container.current.offsetHeight - window.innerHeight
-    window.scrollTo({ top: scrollRange * maxProgress, behavior: 'smooth' })
-  }, [progress, worldStage, populationStage])
+    window.scrollTo({ top: scrollRange * maxProgress, behavior: 'auto' })
+  }, [progress, maxUnlockedScene])
+
+  useEffect(() => {
+    const onKeyDown = event => {
+      if (['ArrowDown', 'PageDown'].includes(event.key)) { event.preventDefault(); navigateTo(activeScene + 1) }
+      if (['ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); navigateTo(activeScene - 1) }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [activeScene, navigateTo])
+
+  useEffect(() => {
+    const onWheel = event => {
+      if (event.target.closest?.('[data-policy-lab]') && activeScene === 6) return
+      if (event.deltaY > 0 && activeScene >= maxUnlockedScene && progress >= sceneNotches[maxUnlockedScene] - .012) {
+        event.preventDefault()
+        navigateTo(maxUnlockedScene)
+      }
+    }
+    window.addEventListener('wheel', onWheel, { passive: false })
+    return () => window.removeEventListener('wheel', onWheel)
+  }, [activeScene, maxUnlockedScene, navigateTo, progress])
+
+  const enterPolicyLab = () => {
+    setPolicyUnlocked(true)
+    if (!container.current) return
+    const scrollRange = container.current.offsetHeight - window.innerHeight
+    window.scrollTo({ top: scrollRange * sceneNotches[6], behavior: 'smooth' })
+    setActiveScene(6)
+  }
 
   const setupWorld = async () => {
     if (worldStage) return
@@ -79,10 +128,17 @@ export default function ScrollStory() {
         </motion.section>
 
         <AgentProfile visible={profileVisible} selectedAgent={selectedAgent} onPrevious={() => setSelectedAgent(index => (index - 1 + movingAgents.length) % movingAgents.length)} onNext={() => setSelectedAgent(index => (index + 1) % movingAgents.length)} />
-        <motion.div animate={{ opacity: networkVisible ? 1 : 0 }} className="pointer-events-none absolute inset-x-5 bottom-8 z-40 mx-auto max-w-4xl">
+        <motion.div animate={{ opacity: networkVisible ? 1 : 0, pointerEvents: networkVisible ? 'auto' : 'none' }} className="absolute inset-x-5 bottom-8 z-40 mx-auto max-w-4xl">
           <div className="grid gap-2 md:grid-cols-3">{[['MICRO','Individual agents'],['MESO','Social + physical networks'],['MACRO','Institutions + policy']].map(([level,text]) => <div className="glass rounded-2xl p-4" key={level}><p className="text-xs tracking-[.25em] text-cyan-300">{level}</p><p className="mt-1 text-sm text-slate-300">{text}</p></div>)}</div>
+          <button onClick={enterPolicyLab} className="mx-auto mt-4 block rounded-xl bg-cyan-300 px-7 py-3 text-sm font-semibold text-slate-950 shadow-[0_0_28px_#67e8f955] transition hover:bg-cyan-200">Enter Policy Lab ↓</button>
         </motion.div>
         <PolicyLab visible={policyVisible} />
+        <SceneNavigation
+          activeScene={activeScene}
+          maxUnlockedScene={maxUnlockedScene}
+          onNavigate={navigateTo}
+          blockedMessage={worldStage < 3 ? 'Set up the world to continue' : populationStage < 3 ? 'Generate the population to continue' : 'Use Enter Policy Lab below'}
+        />
       </div>
     </main>
   )
