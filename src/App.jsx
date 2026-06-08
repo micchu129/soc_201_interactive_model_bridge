@@ -1,5 +1,5 @@
-import ScrollStory from './components/ScrollStory'
+import ModelBridge from './components/ModelBridge'
 
 export default function App() {
-  return <ScrollStory />
+  return <ModelBridge />
 }

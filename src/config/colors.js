@@ -1,0 +1,15 @@
+export const colors = {
+  background: '#050810',
+  ground: '#101923',
+  road: '#293947',
+  roadLine: '#b7c7d1',
+  foundation: '#71808b',
+  home: '#c8d4dc',
+  bar: '#c76584',
+  club: '#8f78c7',
+  shop: '#c99a4c',
+  hospital: '#62a987',
+  rehab: '#68a8aa',
+  police: '#668ac7',
+  agentStages: ['#80d8ee', '#a9d77b', '#e2ca70', '#e7a45f', '#e47768', '#b879c9', '#e35b76'],
+}
