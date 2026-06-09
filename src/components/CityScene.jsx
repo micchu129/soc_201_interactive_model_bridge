@@ -144,13 +144,14 @@ function Building({ building, generationProgress, onSelect, occupants, buildingI
 
 function Agent({ agent, selected, highlighted, onSelect }) {
   const group = useRef()
-  const [initialPosition] = useState(() => [center(agent.position.x), agent.spawnDrop ? 4 : .47, center(agent.position.z)])
+  const targetY = agent.renderHeight || .47
+  const [initialPosition] = useState(() => [center(agent.position.x), agent.spawnDrop ? 4 : targetY, center(agent.position.z)])
   useFrame((_, delta) => {
     if (!group.current) return
     const smoothing = 1 - Math.exp(-delta * 12)
     group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, center(agent.position.x), smoothing)
     group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, center(agent.position.z), smoothing)
-    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, .47, agent.spawnDrop ? 1 - Math.exp(-delta * 3) : smoothing)
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, targetY, agent.spawnDrop ? 1 - Math.exp(-delta * 3) : smoothing)
   })
   return <group ref={group} position={initialPosition} onClick={event => { event.stopPropagation(); onSelect(agent.id) }}>
     <Billboard follow><group visible={agent.renderMode !== 'dot'}><mesh position={[0, .1, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh position={[0, -.02, 0]} scale={selected ? 1.35 : 1}><bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-.18, 0, 0, .18, 0, 0, 0, -.36, 0]), 3]} /></bufferGeometry><meshBasicMaterial color={agent.color} side={THREE.DoubleSide} depthTest /></mesh></group><mesh visible={agent.renderMode === 'dot'}><circleGeometry args={[.15, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[.28, .33, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
@@ -159,7 +160,7 @@ function Agent({ agent, selected, highlighted, onSelect }) {
 
 const worldPoint = (item, buildings) => {
   const building = item.insideBuildingId ? buildings.find(place => place.id === item.insideBuildingId) : null
-  return [center(building?.x ?? item.position?.x ?? item.x), building ? .95 : .48, center(building?.z ?? item.position?.z ?? item.z)]
+  return [center(building?.x ?? item.position?.x ?? item.x), item.position ? (building ? 1.25 : .48) : .95, center(building?.z ?? item.position?.z ?? item.z)]
 }
 
 function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildings }) {
@@ -167,11 +168,16 @@ function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildin
   const agent = agents.find(item => item.id === selectedAgent)
   const source = agent || selectedBuilding
   if (!source) return null
+  const friends = agent ? (agent.socialIds || []).map(id => agents.find(item => item.id === id)).filter(Boolean) : []
   const links = agent
-    ? [...(agent.socialIds || []).map(id => agents.find(item => item.id === id)).filter(Boolean), agent.home, buildings.find(item => item.id === agent.favoriteVenueId)].filter(Boolean)
-    : agents.filter(item => item.favoriteVenueId === selectedBuilding.id || item.home.id === selectedBuilding.id || item.insideBuildingId === selectedBuilding.id)
+    ? [...friends, agent.home, buildings.find(item => item.id === agent.workplaceId), buildings.find(item => item.id === agent.favoriteVenueId), buildings.find(item => item.id === agent.insideBuildingId)].filter(Boolean)
+    : agents.filter(item => item.favoriteVenueId === selectedBuilding.id || item.workplaceId === selectedBuilding.id || item.home.id === selectedBuilding.id || item.insideBuildingId === selectedBuilding.id)
   const sourcePoint = worldPoint(source, buildings)
-  return <group>{links.map((target, index) => <Line key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < (agent.socialIds?.length || 0) ? '#7ed9ed' : '#ffd84d') : '#ffd84d'} lineWidth={6} transparent opacity={.95} />)}</group>
+  const friendBuildingLinks = friends.map(friend => [friend, buildings.find(place => place.id === friend.insideBuildingId)]).filter(([, place]) => place)
+  return <group>
+    {links.map((target, index) => <Line key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < friends.length ? '#7ed9ed' : '#ffd84d') : '#ffd84d'} lineWidth={6} transparent opacity={.95} />)}
+    {friendBuildingLinks.map(([friend, place]) => <Line key={`${friend.id}-${place.id}`} points={[worldPoint(friend, buildings), worldPoint(place, buildings)]} color="#b58cff" lineWidth={4} transparent opacity={.8} />)}
+  </group>
 }
 
 function DayNight({ simMinutes }) {
@@ -198,15 +204,23 @@ function SelectionAnchor({ selectedAgent, selectedBuilding, agents, onAnchorChan
   return null
 }
 
-export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, findTarget, simMinutes, onCustomView, onSelectAgent, onSelectBuilding, onAnchorChange, cameraResetKey }) {
-  const renderedAgents = mode === 'macro' ? agents.map(agent => ({ ...agent, renderMode: 'dot' })) : agents
+export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, highlightedAgents = [], highlightedBuildings = [], findTarget, simMinutes, onCustomView, onSelectAgent, onSelectBuilding, onAnchorChange, cameraResetKey }) {
+  const renderedAgents = mode === 'macro'
+    ? agents.map(agent => ({ ...agent, renderMode: 'dot' }))
+    : mode === 'meso'
+      ? agents.map(agent => {
+        const building = agent.insideBuildingId ? world?.buildings.find(place => place.id === agent.insideBuildingId) : null
+        if (!building) return agent
+        return { ...agent, position: { x: building.x + ((agent.id % 3) - 1) * .12, z: building.z + ((Math.floor(agent.id / 3) % 3) - 1) * .12 }, renderHeight: 1.25, renderMode: 'dot' }
+      })
+      : agents
   return <Canvas camera={{ position: [10, 10, 12], fov: 48 }} dpr={[1, 1.6]} onPointerMissed={() => onSelectBuilding(null)}>
     <DayNight simMinutes={simMinutes} />
     <mesh position={[0, -.08, 0]}><boxGeometry args={[13.6, .12, 13.6]} /><meshStandardMaterial color={colors.ground} /></mesh>
     <gridHelper args={[13, 13, '#365062', '#233847']} position={[0, 0, 0]} />
     {world?.roads.map(road => <Road key={`${road.x}-${road.z}`} road={road} generationProgress={generationProgress} />)}
-    {world?.buildings.map((building, index) => <Building key={building.id} building={building} buildingIndex={index} generationProgress={generationProgress} onSelect={onSelectBuilding} highlighted={building.id === highlightedBuilding} occupants={agents.filter(agent => agent.insideBuildingId === building.id)} />)}
-    {populationStage >= 2 && renderedAgents.filter(agent => !agent.insideBuildingId).map(agent => <Agent key={agent.id} agent={agent} selected={agent.id === selectedAgent} highlighted={agent.id === highlightedAgent} onSelect={onSelectAgent} />)}
+    {world?.buildings.map((building, index) => <Building key={building.id} building={building} buildingIndex={index} generationProgress={generationProgress} onSelect={onSelectBuilding} highlighted={building.id === highlightedBuilding || highlightedBuildings.includes(building.id)} occupants={agents.filter(agent => agent.insideBuildingId === building.id)} />)}
+    {populationStage >= 2 && renderedAgents.filter(agent => !agent.insideBuildingId || mode === 'meso').map(agent => <Agent key={agent.id} agent={agent} selected={agent.id === selectedAgent} highlighted={agent.id === highlightedAgent || highlightedAgents.includes(agent.id)} onSelect={onSelectAgent} />)}
     <NetworkOverlay mode={mode} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} buildings={world?.buildings || []} />
     <CameraRig mode={mode} cameraPreset={cameraPreset} followedAgent={followedAgent} findTarget={findTarget} agents={agents} cameraResetKey={cameraResetKey} onCustomView={onCustomView} />
     <SelectionAnchor selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} onAnchorChange={onAnchorChange} />

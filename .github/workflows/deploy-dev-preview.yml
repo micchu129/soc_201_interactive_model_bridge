@@ -1,0 +1,74 @@
+name: Deploy Dev Preview
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out dev
+        uses: actions/checkout@v5
+
+      - name: Check out production
+        uses: actions/checkout@v5
+        with:
+          ref: master
+          path: production
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            production/package-lock.json
+
+      - name: Install and build production root
+        working-directory: production
+        run: |
+          npm install --include=optional --no-audit --no-fund
+          npm run build -- --base="/${{ github.event.repository.name }}/" --outDir="../preview"
+
+      - name: Install dev dependencies
+        run: npm install --include=optional --no-audit --no-fund
+
+      - name: Lint dev
+        run: npm run lint
+
+      - name: Build dev preview
+        run: npm run build -- --base="/${{ github.event.repository.name }}/dev/" --outDir="preview/dev"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: preview
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}dev/
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy dev preview
+        id: deployment
+        uses: actions/deploy-pages@v4

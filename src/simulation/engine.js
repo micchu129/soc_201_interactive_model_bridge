@@ -77,6 +77,7 @@ function roadRevealOrder(seed, roadSet) {
 export function createPopulation(options, world) {
   const homes = world.buildings.filter(building => building.type === 'home')
   const venues = world.buildings.filter(building => ['bar', 'club', 'shop'].includes(building.type))
+  const workplaces = world.buildings.filter(building => ['hospital', 'rehab', 'police', 'shop', 'bar', 'club'].includes(building.type))
   const roads = world.roads
   const distribution = normalizeDistribution(options.stageDistribution)
   return Array.from({ length: options.populationSize }, (_, index) => {
@@ -97,6 +98,7 @@ export function createPopulation(options, world) {
       route: [], routeIndex: 0, progress: 1, segmentStart: { x: home.x, z: home.z }, insideBuildingId: home.id, activityUntil: 0,
       departureDelay: index % 50, speed: 0.25 + (index % 7) * 0.025, color: colors.agentStages[stage - 1], highlighted: false,
       favoriteVenueId: venues[(index * 3 + stage) % venues.length].id,
+      workplaceId: workplaces.length ? workplaces[(index * 5 + stage) % workplaces.length].id : home.id,
       socialIds: [1, 7, 13].map(offset => (index + offset) % options.populationSize),
       neurotransmitters: {
         dopamine: 38 + (index * 11 + stage * 7) % 55,
@@ -142,11 +144,14 @@ export function advanceRender(state, simulatedMinutes) {
       x: segmentStart.x + (agent.target.x - segmentStart.x) * progress,
       z: segmentStart.z + (agent.target.z - segmentStart.z) * progress,
     }
-    if (progress < 1) return { ...agent, segmentStart, position, progress, activity: `travelling to ${agent.destination.type}` }
+    const onExitSegment = agent.routeIndex === 0 && agent.originBuildingId
+    const onEntrySegment = agent.routeIndex === agent.route.length - 1
+    const insideBuildingId = onExitSegment ? agent.originBuildingId : onEntrySegment ? agent.destination.id : null
+    if (progress < 1) return { ...agent, segmentStart, position, progress, insideBuildingId, activity: `travelling to ${agent.destination.type}` }
     const routeIndex = agent.routeIndex + 1
-    if (routeIndex < agent.route.length) return { ...agent, position: agent.target, segmentStart: agent.target, routeIndex, target: agent.route[routeIndex], progress: 0 }
+    if (routeIndex < agent.route.length) return { ...agent, position: agent.target, segmentStart: agent.target, routeIndex, target: agent.route[routeIndex], progress: 0, insideBuildingId: routeIndex === agent.route.length - 1 ? agent.destination.id : null }
     const arrived = applyArrival({ ...agent, position: agent.target, route: [], routeIndex: 0, progress: 1 }, state.policies, nextMinutes)
-    return { ...arrived, segmentStart: agent.target, insideBuildingId: agent.destination.id, activityUntil: nextMinutes + 35 + agent.id % 70 }
+    return { ...arrived, segmentStart: agent.target, insideBuildingId: agent.destination.id, originBuildingId: null, activityUntil: nextMinutes + 35 + agent.id % 70 }
   })
   return { ...state, agents, simMinutes: nextMinutes, calendar }
 }
@@ -169,7 +174,7 @@ function scheduleAgent(agent, state, calendar, venues, delay = agent.departureDe
   }
   const route = buildRoute(agent.position, decision.destination, state.world)
   return {
-    ...agent, ...decision, intendedActivity: decision.activity, insideBuildingId: null, route, routeIndex: 0,
+    ...agent, ...decision, intendedActivity: decision.activity, originBuildingId: agent.insideBuildingId, route, routeIndex: 0,
     segmentStart: agent.position, target: route[0] || decision.destination, progress: 0, travelStart: state.simMinutes + delay,
     activity: `preparing to travel to ${decision.destination.type}`,
   }
