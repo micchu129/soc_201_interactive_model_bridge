@@ -15,6 +15,7 @@ import PolicyConsole from './PolicyConsole'
 import TutorialOverlay from './TutorialOverlay'
 
 const STORAGE_KEY = 'simarc-bridge-v4'
+const STORAGE_VERSION = 5
 const FIXED_SIM_STEP = .25
 const MAX_SIM_STEPS_PER_FRAME = 32
 const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms))
@@ -27,7 +28,12 @@ const initialState = {
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    return saved?.version === 4 ? saved.state : initialState
+    if (![4, STORAGE_VERSION].includes(saved?.version)) return initialState
+    return {
+      ...saved.state,
+      history: saved.version === STORAGE_VERSION ? saved.state.history || [] : [],
+      agents: (saved.state.agents || []).map(agent => ({ ...agent, consumptionEvents: agent.consumptionEvents || [] })),
+    }
   } catch { return initialState }
 }
 
@@ -53,7 +59,7 @@ export default function ModelBridge() {
   const lastDecisionBoundary = useRef(Math.floor(state.simMinutes / 120))
 
   useEffect(() => {
-    const id = window.setTimeout(() => localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 4, state })), 180)
+    const id = window.setTimeout(() => localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STORAGE_VERSION, state })), 180)
     return () => window.clearTimeout(id)
   }, [state])
   useEffect(() => {

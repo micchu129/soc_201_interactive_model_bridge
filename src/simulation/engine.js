@@ -4,6 +4,7 @@ import { applyArrival, decideAction, updateStage } from './agentRules'
 import { normalizeDistribution } from './validation'
 
 const GRID = 13
+const ROLLING_CONSUMPTION_MINUTES = 24 * 60
 const road = value => value === 0 || value === GRID - 1 || value % 4 === 0
 const key = (x, z) => `${x}-${z}`
 const specialNames = {
@@ -92,7 +93,7 @@ export function createPopulation(options, world) {
       age: 18 + (index * 7) % 48, weight: 55 + (index * 13) % 45, socialPosition: 1 + index % 25,
       cash: 120 + (index * 31) % 480, health: 72 + index % 28, sanity: 70 + (index * 3) % 30,
       stage, useMode: stage < 3 ? 'Just-A-Drink' : stage < 6 ? "Let's Rock" : 'Get-Smashed',
-      bac: 0, weeklyUnits: 0, activity: 'at home', home, position: { x: home.x, z: home.z }, target: { x: home.x, z: home.z },
+      bac: 0, weeklyUnits: 0, consumptionEvents: [], activity: 'at home', home, position: { x: home.x, z: home.z }, target: { x: home.x, z: home.z },
       route: [], routeIndex: 0, progress: 1, segmentStart: { x: home.x, z: home.z }, insideBuildingId: home.id, activityUntil: 0,
       departureDelay: index % 50, speed: 0.25 + (index % 7) * 0.025, color: colors.agentStages[stage - 1], highlighted: false,
       favoriteVenueId: venues[(index * 3 + stage) % venues.length].id,
@@ -104,7 +105,10 @@ export function createPopulation(options, world) {
       },
     }
     if (seedMode === 0 || seedMode === 1) return base
-    if (seedMode === 2) return { ...base, insideBuildingId: venue.id, position: { x: venue.x, z: venue.z }, segmentStart: { x: venue.x, z: venue.z }, activity: venue.type === 'shop' ? 'buying alcohol' : 'drinking', activityUntil: 25 + index % 40, weeklyUnits: venue.type === 'shop' ? 0 : Math.max(1, Math.round(stage / 2)), bac: venue.type === 'shop' ? 0 : .08 + stage * .03 }
+    if (seedMode === 2) {
+      const initialUnits = venue.type === 'shop' ? 0 : Math.max(1, Math.round(stage / 2))
+      return { ...base, insideBuildingId: venue.id, position: { x: venue.x, z: venue.z }, segmentStart: { x: venue.x, z: venue.z }, activity: venue.type === 'shop' ? 'buying alcohol' : 'drinking', activityUntil: 25 + index % 40, weeklyUnits: initialUnits, consumptionEvents: initialUnits ? [{ minute: 0, units: initialUnits }] : [], bac: venue.type === 'shop' ? 0 : .08 + stage * .03 }
+    }
     const target = nearestRoad(home)
     return { ...base, insideBuildingId: null, position: { x: roadCell.x, z: roadCell.z }, segmentStart: { x: roadCell.x, z: roadCell.z }, target, route: buildRoadRoute(roadCell, target, world), routeIndex: 0, progress: 0, intendedActivity: 'going home', destination: home, activity: 'travelling home', travelStart: 0 }
   })
@@ -114,7 +118,7 @@ export function decisionTick(state) {
   const calendar = calendarFromMinutes(state.simMinutes)
   const venues = groupVenues(state.world)
   let agents = state.agents.map(agent => {
-    const aged = { ...agent, bac: Math.max(0, agent.bac - 0.15) }
+    const aged = { ...agent, bac: Math.max(0, agent.bac - 0.15), consumptionEvents: recentConsumptionEvents(agent, state.simMinutes) }
     if (aged.route.length || state.simMinutes < aged.activityUntil) return aged
     return scheduleAgent(aged, state, calendar, venues)
   })
@@ -141,7 +145,7 @@ export function advanceRender(state, simulatedMinutes) {
     if (progress < 1) return { ...agent, segmentStart, position, progress, activity: `travelling to ${agent.destination.type}` }
     const routeIndex = agent.routeIndex + 1
     if (routeIndex < agent.route.length) return { ...agent, position: agent.target, segmentStart: agent.target, routeIndex, target: agent.route[routeIndex], progress: 0 }
-    const arrived = applyArrival({ ...agent, position: agent.target, route: [], routeIndex: 0, progress: 1 }, state.policies)
+    const arrived = applyArrival({ ...agent, position: agent.target, route: [], routeIndex: 0, progress: 1 }, state.policies, nextMinutes)
     return { ...arrived, segmentStart: agent.target, insideBuildingId: agent.destination.id, activityUntil: nextMinutes + 35 + agent.id % 70 }
   })
   return { ...state, agents, simMinutes: nextMinutes, calendar }
@@ -212,12 +216,20 @@ function buildRoute(from, destination, world) {
 export function outcomesFromState(state) {
   const agents = state.agents || []
   const average = key => agents.length ? agents.reduce((sum, agent) => sum + agent[key], 0) / agents.length : 0
+  const rollingConsumption = agents.length
+    ? agents.reduce((sum, agent) => sum + recentConsumptionEvents(agent, state.simMinutes).reduce((units, event) => units + event.units, 0), 0) / agents.length
+    : 0
   return {
-    consumption: average('weeklyUnits').toFixed(1),
+    consumption: rollingConsumption.toFixed(1),
     highRisk: agents.filter(agent => agent.stage >= 5).length,
     hospital: agents.filter(agent => ['hospitalized', 'recovering'].includes(agent.activity)).length,
     treatment: agents.filter(agent => agent.activity === 'in treatment').length,
     averageHealth: average('health').toFixed(0),
     averageBac: average('bac').toFixed(2),
   }
+}
+
+function recentConsumptionEvents(agent, simMinutes) {
+  const cutoff = simMinutes - ROLLING_CONSUMPTION_MINUTES
+  return (agent.consumptionEvents || []).filter(event => event.minute > cutoff && event.minute <= simMinutes)
 }
