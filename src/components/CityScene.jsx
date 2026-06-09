@@ -163,6 +163,13 @@ const worldPoint = (item, buildings) => {
   return [center(building?.x ?? item.position?.x ?? item.x), item.position ? (building ? 1.25 : .48) : .95, center(building?.z ?? item.position?.z ?? item.z)]
 }
 
+function NetworkLine({ points, color, width = 12, opacity = 1 }) {
+  return <>
+    <Line points={points} color="#02050a" lineWidth={width + 8} transparent opacity={opacity * .78} depthTest={false} renderOrder={30} />
+    <Line points={points} color={color} lineWidth={width} transparent opacity={opacity} depthTest={false} renderOrder={31} />
+  </>
+}
+
 function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildings }) {
   if (!['meso', 'macro'].includes(mode)) return null
   const agent = agents.find(item => item.id === selectedAgent)
@@ -175,8 +182,8 @@ function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildin
   const sourcePoint = worldPoint(source, buildings)
   const friendBuildingLinks = friends.map(friend => [friend, buildings.find(place => place.id === friend.insideBuildingId)]).filter(([, place]) => place)
   return <group>
-    {links.map((target, index) => <Line key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < friends.length ? '#7ed9ed' : '#ffd84d') : '#ffd84d'} lineWidth={6} transparent opacity={.95} />)}
-    {friendBuildingLinks.map(([friend, place]) => <Line key={`${friend.id}-${place.id}`} points={[worldPoint(friend, buildings), worldPoint(place, buildings)]} color="#b58cff" lineWidth={4} transparent opacity={.8} />)}
+    {links.map((target, index) => <NetworkLine key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < friends.length ? '#67e8f9' : '#ffe36e') : '#ffe36e'} width={index < friends.length ? 13 : 11} />)}
+    {friendBuildingLinks.map(([friend, place]) => <NetworkLine key={`${friend.id}-${place.id}`} points={[worldPoint(friend, buildings), worldPoint(place, buildings)]} color="#c69cff" width={9} opacity={.95} />)}
   </group>
 }
 

@@ -43,7 +43,7 @@ button { cursor: pointer; }
 .details-panel { position: fixed; z-index: 15; width: min(30rem, calc(100vw - 3rem)); max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; transform: translate(-50%, 0); }
 .drag-handle { cursor: move; user-select: none; }
 .detail-connector { position: fixed; z-index: 14; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
-.detail-connector line { stroke: #7ed9ed; stroke-width: 2; opacity: .7; }
+.detail-connector line { stroke: #8be7f7; stroke-width: 3; opacity: .9; filter: drop-shadow(0 0 4px #7ed9ed); }
 .section-heading { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
 .section-heading h2 { margin: .25rem 0; }
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem; margin-top: 1rem; }
