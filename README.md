@@ -96,7 +96,7 @@ The current renderer uses generated Three.js fallback geometry and does not requ
 
 ## Deployment And Branches
 
-- Pushes to `master` build and deploy the production GitHub Pages site.
+- Pushes to `main` build and deploy the production GitHub Pages site.
 - Pushes to `dev` build both the production root and the `/dev/` preview, then deploy the combined Pages artifact.
 - Both workflows run lint and a production build before deployment.
 

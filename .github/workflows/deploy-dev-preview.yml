@@ -27,7 +27,7 @@ jobs:
       - name: Check out production
         uses: actions/checkout@v5
         with:
-          ref: master
+          ref: main
           path: production
 
       - name: Set up Node
