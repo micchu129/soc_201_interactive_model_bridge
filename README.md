@@ -86,6 +86,7 @@ The current renderer uses generated Three.js fallback geometry and does not requ
 
 ## Documentation
 
+- [Changelog](CHANGELOG.md): tagged release history from the initial alpha through the current beta.
 - [Tutorial Implementation Reference](docs/TUTORIAL_IMPLEMENTATION_BETA4.md): exact 24-step sequence, displayed text, required actions, locks, and restoration behavior.
 - [Creative Alterations](docs/CREATIVE_ALTERATIONS.md): explicit differences between the Bridge and original SimARC.
 - [NetLogo Implementation Status](docs/NETLOGO_IMPLEMENTATION_STATUS.md): implemented, simplified, deferred, and planned behavior.
