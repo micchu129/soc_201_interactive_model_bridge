@@ -150,6 +150,9 @@ function Building({ building, generationProgress, onSelect, buildingIndex, build
 
 function Agent({ agent, displayPosition, renderHeight, renderMode, dotRadius = .15, selected, highlighted, onSelect }) {
   const group = useRef()
+  const torso = useRef()
+  const { camera } = useThree()
+  const [cameraDirection] = useState(() => new THREE.Vector3())
   const targetY = renderHeight || .47
   const targetPosition = displayPosition || agent.position
   const towerDot = dotRadius === TOWER_CIRCLE_RADIUS
@@ -165,9 +168,16 @@ function Agent({ agent, displayPosition, renderHeight, renderMode, dotRadius = .
     group.current.position.x = distance > 1.05 ? targetX : THREE.MathUtils.lerp(group.current.position.x, targetX, smoothing)
     group.current.position.z = distance > 1.05 ? targetZ : THREE.MathUtils.lerp(group.current.position.z, targetZ, smoothing)
     group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, targetY, agent.spawnDrop ? 1 - Math.exp(-delta * 3) : smoothing)
+    if (renderMode === 'person' && torso.current) {
+      camera.getWorldDirection(cameraDirection)
+      const torsoVisibility = Math.max(.001, Math.sqrt(Math.max(0, 1 - cameraDirection.y ** 2)))
+      const selectedScale = selected ? 1.35 : 1
+      torso.current.scale.x = selectedScale
+      torso.current.scale.y = THREE.MathUtils.damp(torso.current.scale.y, selectedScale * torsoVisibility, 12, delta)
+    }
   })
   return <group ref={group} position={initialPosition} onClick={event => { event.stopPropagation(); onSelect(agent.id) }}>
-    <Billboard follow><group visible={renderMode !== 'dot'}><mesh position={[0, .1, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh position={[0, -.02, 0]} scale={selected ? 1.35 : 1}><bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-.18, 0, 0, .18, 0, 0, 0, -.36, 0]), 3]} /></bufferGeometry><meshBasicMaterial color={agent.color} side={THREE.DoubleSide} depthTest /></mesh></group><mesh visible={renderMode === 'dot'}><circleGeometry args={[dotRadius, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[ringInner, ringOuter, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
+    <Billboard follow><group visible={renderMode !== 'dot'}><mesh position={[0, .1, 0]} scale={selected ? 1.35 : 1}><circleGeometry args={[.12, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh><mesh ref={torso} position={[0, -.02, 0]} scale={selected ? 1.35 : 1}><bufferGeometry><bufferAttribute attach="attributes-position" args={[new Float32Array([-.18, 0, 0, .18, 0, 0, 0, -.36, 0]), 3]} /></bufferGeometry><meshBasicMaterial color={agent.color} side={THREE.DoubleSide} depthTest /></mesh></group><mesh visible={renderMode === 'dot'}><circleGeometry args={[dotRadius, 20]} /><meshBasicMaterial color={agent.color} depthTest /></mesh>{(selected || highlighted) && <mesh position={[0, -.03, -.01]}><ringGeometry args={[ringInner, ringOuter, 32]} /><meshBasicMaterial color={selected ? '#ffffff' : '#f7d96f'} /></mesh>}</Billboard>
   </group>
 }
 
