@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { outcomesFromState } from '../simulation/engine'
 import { speedOptions } from '../simulation/clock'
+import SlidingToggleGroup from './SlidingToggleGroup'
 
 const windows = { '24 hours': 1440, '7 days': 10080, '30 days': 43200 }
 const stageColors = ['#80d8ee', '#a9d77b', '#e2ca70', '#e7a45f', '#e47768', '#b879c9', '#e35b76']
 const pointsFor = (values, max) => values.map((value, index) => `${values.length <= 1 ? 0 : index / (values.length - 1) * 100},${48 - value / max * 44}`).join(' ')
 
-export default function PolicyConsole({ state, onApply, onSpeed, tutorialHighlight }) {
+export default function PolicyConsole({ state, onApply, onSpeed, onToggleClockFormat, clockTimeLabel, tutorialHighlight }) {
   const [pending, setPending] = useState(state.policies)
   const [windowLabel, setWindowLabel] = useState('24 hours')
   const outcomes = outcomesFromState(state)
@@ -15,7 +16,10 @@ export default function PolicyConsole({ state, onApply, onSpeed, tutorialHighlig
   const chartMax = Math.max(1, ...consumption)
   const stageMax = Math.max(1, ...history.flatMap(point => point.stages || []))
   return <section className="macro-console">
-    <div className="macro-playback"><div><strong>{state.calendar.time}</strong><span>Day {String(state.calendar.dayNumber).padStart(3, '0')} · {state.calendar.day} · Week {state.calendar.week} · {state.calendar.period}</span></div><div className="speed-controls">{speedOptions.map(speed => <button key={speed} className={state.speed === speed ? 'active' : ''} onClick={() => onSpeed(speed)}>{speed === 0 ? '❚❚' : speed === 1 ? '▶' : `${speed}×`}</button>)}</div></div>
+    <div className="time-control-stack macro-time-stack">
+      <section className="date-strip panel"><strong>Day {String(state.calendar.dayNumber).padStart(3, '0')}</strong><div className="date-metadata"><span>{state.calendar.day}</span><i>·</i><span>{state.calendar.period}</span><i>·</i><span>Week {state.calendar.week}</span></div></section>
+      <footer className="sim-controls panel"><button className="clock-display" title={`Switch to ${clockTimeLabel === '24h' ? '12-hour' : '24-hour'} time`} onClick={onToggleClockFormat}>{clockTimeLabel}</button><SlidingToggleGroup className="speed-controls" buttonClassName="speed-toggle-button" ariaLabel="Simulation speed" items={speedOptions.map(speed => ({ value: speed, label: speed === 0 ? '❚❚' : speed === 1 ? '▶' : `${speed}×` }))} value={state.speed} onChange={onSpeed} /></footer>
+    </div>
     <div className="policy-panel"><p className="kicker">Macro / Policy lab</p><h2>Apply an intervention</h2>{[['alcoholPrice', 2, 12], ['venueRegulation', 0, 100], ['treatmentAccess', 0, 100], ['prevention', 0, 100]].map(([key, min, max]) => <label className={`policy-slider ${tutorialHighlight === key ? 'tutorial-highlight' : ''}`} key={key}><span>{key.replace(/([A-Z])/g, ' $1')} <strong>{pending[key]}</strong></span><input type="range" min={min} max={max} value={pending[key]} onChange={event => setPending({ ...pending, [key]: Number(event.target.value) })} /></label>)}<button className="button primary wide" onClick={() => onApply(pending)}>Apply policy</button></div>
     <div className={`outcome-grid ${tutorialHighlight === 'outcomes' ? 'tutorial-highlight' : ''}`}>{Object.entries(outcomes).map(([key, value]) => <div className="panel outcome" key={key}><p>{key.replace(/([A-Z])/g, ' $1')}</p><strong>{value}</strong></div>)}</div>
     <div className="history-tabs">{Object.keys(windows).map(label => <button key={label} className={label === windowLabel ? 'active' : ''} onClick={() => setWindowLabel(label)}>{label}</button>)}</div>

@@ -14,7 +14,7 @@ Source reviewed: `SimARC 2.2_7.0.3.nlogox`.
 - Policy application at safe two-hour calculation boundaries.
 - Aggregate consumption, high-risk population, hospital load, treatment load, health, and BAC outputs.
 - Two-hour consumption and seven-stage history retained for up to 30 simulated days.
-- Road-graph travel presentation and selectable Micro/Meso occupancy sphere towers.
+- Road-waypoint travel presentation and selectable Micro/Meso billboard-circle occupancy towers.
 
 ## Simplified
 
@@ -38,7 +38,7 @@ Source reviewed: `SimARC 2.2_7.0.3.nlogox`.
 1. Validate stage transition outputs against NetLogo BehaviorSpace runs.
 2. Add social-network group state and belief updates.
 3. Add carefully tested accidents, assaults, and police responses.
-4. Replace direct travel with a full sidewalk graph and venue occupancy queue.
+4. Extend the current road-waypoint graph with detailed sidewalk and venue occupancy queues.
 5. Add imported GLB streets/buildings and editable billboard artwork.
 
 See `CREATIVE_ALTERATIONS.md` for the explicit source-model versus Bridge comparison.

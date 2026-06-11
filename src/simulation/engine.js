@@ -113,7 +113,8 @@ export function createPopulation(options, world) {
       return { ...base, insideBuildingId: venue.id, position: { x: venue.x, z: venue.z }, segmentStart: { x: venue.x, z: venue.z }, activity: venue.type === 'shop' ? 'buying alcohol' : 'drinking', activityUntil: 25 + index % 40, weeklyUnits: initialUnits, consumptionEvents: initialUnits ? [{ minute: 0, units: initialUnits }] : [], bac: venue.type === 'shop' ? 0 : .08 + stage * .03 }
     }
     const target = nearestRoad(home)
-    return { ...base, insideBuildingId: null, position: { x: roadCell.x, z: roadCell.z }, segmentStart: { x: roadCell.x, z: roadCell.z }, target, route: buildRoadRoute(roadCell, target, world), routeIndex: 0, progress: 0, intendedActivity: 'going home', destination: home, activity: 'travelling home', travelStart: 0 }
+    const route = buildRoadRoute(roadCell, target, world)
+    return { ...base, insideBuildingId: null, position: { x: roadCell.x, z: roadCell.z }, segmentStart: { x: roadCell.x, z: roadCell.z }, target: route[0] || target, route, routeIndex: 0, progress: 0, intendedActivity: 'going home', destination: home, activity: 'travelling home', travelStart: 0 }
   })
 }
 

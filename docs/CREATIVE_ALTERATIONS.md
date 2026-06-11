@@ -24,7 +24,7 @@ The Bridge is an explanatory interface built from SimARC 2.2 concepts. It is not
 
 - A navigable 3D city with continuous movement and day/night lighting.
 - Micro, Meso, and Macro explanatory layers.
-- Selectable building and agent panels, occupancy sphere towers, network hubs, and relationship highlighting.
+- Selectable building and agent panels, billboard-circle occupancy towers, labeled network hubs, and relationship highlighting.
 - Guided action-driven tutorial, camera presets, responsive mobile bottom sheets, saved browser state, and UI scaling.
 - Two-hour consumption and stage-distribution history with selectable timescales.
 - Policy-oriented outcome cards and explanatory presentation not present in the original interface.
@@ -35,4 +35,4 @@ Occupancy towers, network edge colors, panel connectors, tutorial rewind, camera
 
 ## Occupancy Display History
 
-An earlier untracked build used circular occupancy indicators and was later removed. Version `v0.3.0-beta.2` restores the concept as selectable 3D sphere towers in Micro and Meso. Macro retains compact rooftop corner indicators to reduce visual density.
+An earlier untracked build used circular occupancy indicators and was later removed. Version `v0.3.0-beta.2` restored the concept as 3D spheres. Version `v0.3.0-beta.3` restores the preferred Beta.1-style billboard circles while retaining four-person tower layers in Micro and Meso. These circles are persistent agent visuals, so entry and exit remain visible. Macro uses small billboard circles in rooftop corners to reduce visual density.
