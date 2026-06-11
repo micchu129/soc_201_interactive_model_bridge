@@ -13,13 +13,15 @@ Source reviewed: `SimARC 2.2_7.0.3.nlogox`.
 - Basic sickness/hospitalization and rehabilitation behavior.
 - Policy application at safe two-hour calculation boundaries.
 - Aggregate consumption, high-risk population, hospital load, treatment load, health, and BAC outputs.
+- Two-hour consumption and seven-stage history retained for up to 30 simulated days.
+- Road-graph travel presentation and selectable Micro/Meso occupancy sphere towers.
 
 ## Simplified
 
 - NetLogo territory arrays are represented as home and destination objects.
 - Social-position and stage influence are retained, while neural-threshold arrays are not.
 - Venue routines are probabilistic and readable rather than reproducing every hour-specific branch.
-- Agents travel directly between validated destinations; detailed transit modes are omitted.
+- Agents use a simplified road graph between validated destinations; detailed transit modes are omitted.
 - Renderer supports approximately 100 visible agents rather than the NetLogo default of 1,000.
 
 ## Deferred
@@ -38,3 +40,5 @@ Source reviewed: `SimARC 2.2_7.0.3.nlogox`.
 3. Add carefully tested accidents, assaults, and police responses.
 4. Replace direct travel with a full sidewalk graph and venue occupancy queue.
 5. Add imported GLB streets/buildings and editable billboard artwork.
+
+See `CREATIVE_ALTERATIONS.md` for the explicit source-model versus Bridge comparison.

@@ -100,7 +100,6 @@ function Road({ road, generationProgress }) {
     group.current.visible = visible
     group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, visible ? .025 : 4, .1)
   })
-  if (generationProgress <= 0) return null
   return <group ref={group} position={[center(road.x), 4, center(road.z)]}>
     <mesh><boxGeometry args={[.88, .05, .88]} /><meshStandardMaterial color={colors.road} roughness={.9} /></mesh>
     {road.connections?.map((connected, direction) => connected && [0, 1].map(segment => {
@@ -115,30 +114,49 @@ function Road({ road, generationProgress }) {
 
 const buildingIcons = { home: '⌂', hospital: 'H', police: 'P', shop: '▣', bar: '◒', club: '♪', rehab: '+' }
 
-function Building({ building, generationProgress, onSelect, occupants, buildingIndex, highlighted }) {
+function OccupancyDisplay({ occupants, height, mode, onSelectAgent }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!occupants.length) return null
+  if (mode === 'macro') return <group position={[.22, height + .16, -.22]}>
+    {occupants.slice(0, 8).map((occupant, index) => <mesh key={occupant.id} position={[-(index % 4) * .075, 0, Math.floor(index / 4) * .075]}><boxGeometry args={[.055, .025, .055]} /><meshBasicMaterial color={occupant.color} /></mesh>)}
+  </group>
+  return <group position={[0, height + .23, 0]} onPointerOver={event => { event.stopPropagation(); setExpanded(true) }} onPointerOut={() => setExpanded(false)}>
+    {occupants.map((occupant, index) => {
+      const layer = Math.floor(index / 4)
+      const slot = index % 4
+      const spacing = .15
+      const layerSpacing = expanded ? .22 : .12
+      return <mesh key={occupant.id} position={[(slot % 2 - .5) * spacing, layer * layerSpacing, (Math.floor(slot / 2) - .5) * spacing]} onClick={event => { event.stopPropagation(); onSelectAgent(occupant.id) }}>
+        <sphereGeometry args={[.052, 14, 10]} /><meshStandardMaterial color={occupant.color} roughness={.28} metalness={.15} emissive={occupant.color} emissiveIntensity={.12} />
+      </mesh>
+    })}
+  </group>
+}
+
+function Building({ building, generationProgress, onSelect, onSelectAgent, occupants, buildingIndex, highlighted, mode }) {
   const foundation = useRef()
+  const zone = useRef()
   const structure = useRef()
   const typeIndex = ['home', 'shop', 'bar', 'club', 'hospital', 'rehab', 'police'].indexOf(building.type)
   const zoneStart = .48 + (typeIndex + 1) * .018
   const buildingStart = .68 + buildingIndex * .003
   useFrame(() => {
-    if (foundation.current) foundation.current.scale.y = THREE.MathUtils.lerp(foundation.current.scale.y, generationProgress >= .32 ? 1 : .01, .06)
-    if (structure.current) structure.current.scale.y = THREE.MathUtils.lerp(structure.current.scale.y, generationProgress >= buildingStart ? 1 : .01, .055)
+    const smooth = (value, start, duration) => THREE.MathUtils.smoothstep(value, start, start + duration)
+    if (foundation.current) foundation.current.scale.y = Math.max(.01, smooth(generationProgress, .28, .14))
+    if (zone.current) zone.current.scale.setScalar(Math.max(.01, smooth(generationProgress, zoneStart, .1)))
+    if (structure.current) structure.current.scale.y = Math.max(.01, smooth(generationProgress, buildingStart, .16))
   })
-  if (generationProgress < .28) return null
   const info = venueFunctions[building.type]
   const height = building.type === 'home' ? .72 : .9
   return <group position={[center(building.x), 0, center(building.z)]} onClick={event => { event.stopPropagation(); onSelect({ ...building, ...info }) }}>
     <mesh ref={foundation} scale={[1, .01, 1]} position={[0, .055, 0]}><boxGeometry args={[.78, .1, .78]} /><meshStandardMaterial color={colors.foundation} /></mesh>
-    {generationProgress >= zoneStart && <mesh position={[0, .115, 0]}><boxGeometry args={[.64, .025, .64]} /><meshBasicMaterial color={colors[building.type]} transparent opacity={.7} /></mesh>}
-    {generationProgress >= buildingStart && <group ref={structure} scale={[1, .01, 1]}>
+    <mesh ref={zone} scale={[.01, .01, .01]} position={[0, .115, 0]}><boxGeometry args={[.64, .025, .64]} /><meshBasicMaterial color={colors[building.type]} transparent opacity={.7} /></mesh>
+    <group ref={structure} scale={[1, .01, 1]}>
       <mesh position={[0, height / 2 + .11, 0]}><boxGeometry args={[.66, height, .66]} /><meshStandardMaterial color={colors[building.type]} roughness={.75} /></mesh>
-      {highlighted && <mesh position={[0, height / 2 + .11, 0]} scale={1.08}><boxGeometry args={[.66, height, .66]} /><meshBasicMaterial color="#ffffff" wireframe /></mesh>}
+      {highlighted && <><mesh position={[0, height / 2 + .11, 0]} scale={1.1}><boxGeometry args={[.66, height, .66]} /><meshBasicMaterial color="#ffffff" wireframe /></mesh><mesh position={[0, height / 2 + .11, 0]} scale={1.15}><boxGeometry args={[.66, height, .66]} /><meshBasicMaterial color="#f7d96f" transparent opacity={.65} wireframe /></mesh></>}
       <Text position={[0, height + .125, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={.28} color={building.type === 'hospital' ? '#b91c1c' : '#07111b'} anchorX="center" anchorY="middle">{buildingIcons[building.type]}</Text>
-      {occupants.length > 0 && <group>
-        {occupants.slice(0, 8).map((occupant, index) => <mesh key={occupant.id} position={[.23 - (index % 4) * .075, height + .16, -.23 + Math.floor(index / 4) * .075]}><boxGeometry args={[.06, .025, .06]} /><meshBasicMaterial color={occupant.color} /></mesh>)}
-      </group>}
-    </group>}
+      <OccupancyDisplay occupants={occupants} height={height} mode={mode} onSelectAgent={onSelectAgent} />
+    </group>
   </group>
 }
 
@@ -149,8 +167,11 @@ function Agent({ agent, selected, highlighted, onSelect }) {
   useFrame((_, delta) => {
     if (!group.current) return
     const smoothing = 1 - Math.exp(-delta * 12)
-    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, center(agent.position.x), smoothing)
-    group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, center(agent.position.z), smoothing)
+    const targetX = center(agent.position.x)
+    const targetZ = center(agent.position.z)
+    const distance = Math.hypot(group.current.position.x - targetX, group.current.position.z - targetZ)
+    group.current.position.x = distance > 1.05 ? targetX : THREE.MathUtils.lerp(group.current.position.x, targetX, smoothing)
+    group.current.position.z = distance > 1.05 ? targetZ : THREE.MathUtils.lerp(group.current.position.z, targetZ, smoothing)
     group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, targetY, agent.spawnDrop ? 1 - Math.exp(-delta * 3) : smoothing)
   })
   return <group ref={group} position={initialPosition} onClick={event => { event.stopPropagation(); onSelect(agent.id) }}>
@@ -160,18 +181,27 @@ function Agent({ agent, selected, highlighted, onSelect }) {
 
 const worldPoint = (item, buildings) => {
   const building = item.insideBuildingId ? buildings.find(place => place.id === item.insideBuildingId) : null
-  return [center(building?.x ?? item.position?.x ?? item.x), item.position ? (building ? 1.25 : .48) : .95, center(building?.z ?? item.position?.z ?? item.z)]
+  if (building && item.position) {
+    const occupants = item._buildingOccupants || []
+    const index = Math.max(0, occupants.findIndex(occupant => occupant.id === item.id))
+    const slot = index % 4
+    return [center(building.x) + (slot % 2 - .5) * .15, (building.type === 'home' ? .72 : .9) + .23 + Math.floor(index / 4) * .12, center(building.z) + (Math.floor(slot / 2) - .5) * .15]
+  }
+  return [center(building?.x ?? item.position?.x ?? item.x), item.position ? .48 : .95, center(building?.z ?? item.position?.z ?? item.z)]
 }
 
-function NetworkLine({ points, color, width = 12, opacity = 1 }) {
+function NetworkLine({ points, color, width = 4, opacity = 1, active = false }) {
   return <>
-    <Line points={points} color="#02050a" lineWidth={width + 8} transparent opacity={opacity * .78} depthTest={false} renderOrder={30} />
+    {active && <Line points={points} color="#fff4ad" lineWidth={width + 7} transparent opacity={opacity * .25} depthTest={false} renderOrder={29} />}
+    <Line points={points} color="#02050a" lineWidth={width + 3} transparent opacity={opacity * .78} depthTest={false} renderOrder={30} />
     <Line points={points} color={color} lineWidth={width} transparent opacity={opacity} depthTest={false} renderOrder={31} />
   </>
 }
 
 function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildings }) {
-  if (!['meso', 'macro'].includes(mode)) return null
+  const [expanded, setExpanded] = useState(false)
+  const [category, setCategory] = useState('all')
+  if (mode !== 'meso') return null
   const agent = agents.find(item => item.id === selectedAgent)
   const source = agent || selectedBuilding
   if (!source) return null
@@ -179,11 +209,24 @@ function NetworkOverlay({ mode, selectedAgent, selectedBuilding, agents, buildin
   const links = agent
     ? [...friends, agent.home, buildings.find(item => item.id === agent.workplaceId), buildings.find(item => item.id === agent.favoriteVenueId), buildings.find(item => item.id === agent.insideBuildingId)].filter(Boolean)
     : agents.filter(item => item.favoriteVenueId === selectedBuilding.id || item.workplaceId === selectedBuilding.id || item.home.id === selectedBuilding.id || item.insideBuildingId === selectedBuilding.id)
-  const sourcePoint = worldPoint(source, buildings)
+  const occupantsFor = item => item?.insideBuildingId ? agents.filter(agentItem => agentItem.insideBuildingId === item.insideBuildingId) : []
+  const enriched = item => item?.position ? { ...item, _buildingOccupants: occupantsFor(item) } : item
+  const sourcePoint = worldPoint(enriched(source), buildings)
+  const hubPoint = [sourcePoint[0], sourcePoint[1] + 1, sourcePoint[2]]
+  const socialHub = [hubPoint[0] - .45, hubPoint[1] + .45, hubPoint[2]]
+  const locationHub = [hubPoint[0] + .45, hubPoint[1] + .45, hubPoint[2]]
   const friendBuildingLinks = friends.map(friend => [friend, buildings.find(place => place.id === friend.insideBuildingId)]).filter(([, place]) => place)
   return <group>
-    {links.map((target, index) => <NetworkLine key={`${target.id}-${index}`} points={[sourcePoint, worldPoint(target, buildings)]} color={agent ? (index < friends.length ? '#67e8f9' : '#ffe36e') : '#ffe36e'} width={index < friends.length ? 13 : 11} />)}
-    {friendBuildingLinks.map(([friend, place]) => <NetworkLine key={`${friend.id}-${place.id}`} points={[worldPoint(friend, buildings), worldPoint(place, buildings)]} color="#c69cff" width={9} opacity={.95} />)}
+    <NetworkLine points={[sourcePoint, hubPoint]} color="#fff4ad" active />
+    <mesh position={hubPoint} onClick={event => { event.stopPropagation(); setExpanded(value => !value) }}><sphereGeometry args={[.12, 18, 12]} /><meshStandardMaterial color="#fff4ad" emissive="#e4bd45" emissiveIntensity={.5} /></mesh>
+    {expanded && <><NetworkLine points={[hubPoint, socialHub]} color="#67e8f9" active={category === 'social'} /><NetworkLine points={[hubPoint, locationHub]} color="#ffe36e" active={category === 'locations'} /><mesh position={socialHub} onClick={event => { event.stopPropagation(); setCategory('social') }}><sphereGeometry args={[.1, 16, 10]} /><meshStandardMaterial color="#67e8f9" /></mesh><mesh position={locationHub} onClick={event => { event.stopPropagation(); setCategory('locations') }}><sphereGeometry args={[.1, 16, 10]} /><meshStandardMaterial color="#ffe36e" /></mesh></>}
+    {links.map((target, index) => {
+      const social = index < friends.length
+      const start = expanded ? (social ? socialHub : locationHub) : hubPoint
+      const active = category === 'all' || category === (social ? 'social' : 'locations')
+      return <NetworkLine key={`${target.id}-${index}`} points={[start, worldPoint(enriched(target), buildings)]} color={social ? '#67e8f9' : '#ffe36e'} opacity={active ? 1 : .25} active={active && category !== 'all'} />
+    })}
+    {friendBuildingLinks.map(([friend, place]) => <NetworkLine key={`${friend.id}-${place.id}`} points={[worldPoint(enriched(friend), buildings), worldPoint(place, buildings)]} color="#c69cff" opacity={category === 'social' || category === 'all' ? .85 : .2} />)}
   </group>
 }
 
@@ -226,9 +269,9 @@ export default function CityScene({ world, generationProgress, agents, populatio
     <mesh position={[0, -.08, 0]}><boxGeometry args={[13.6, .12, 13.6]} /><meshStandardMaterial color={colors.ground} /></mesh>
     <gridHelper args={[13, 13, '#365062', '#233847']} position={[0, 0, 0]} />
     {world?.roads.map(road => <Road key={`${road.x}-${road.z}`} road={road} generationProgress={generationProgress} />)}
-    {world?.buildings.map((building, index) => <Building key={building.id} building={building} buildingIndex={index} generationProgress={generationProgress} onSelect={onSelectBuilding} highlighted={building.id === highlightedBuilding || highlightedBuildings.includes(building.id)} occupants={agents.filter(agent => agent.insideBuildingId === building.id)} />)}
-    {populationStage >= 2 && renderedAgents.filter(agent => !agent.insideBuildingId || mode === 'meso').map(agent => <Agent key={agent.id} agent={agent} selected={agent.id === selectedAgent} highlighted={agent.id === highlightedAgent || highlightedAgents.includes(agent.id)} onSelect={onSelectAgent} />)}
-    <NetworkOverlay mode={mode} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} buildings={world?.buildings || []} />
+    {world?.buildings.map((building, index) => <Building key={building.id} building={building} buildingIndex={index} generationProgress={generationProgress} mode={mode} onSelect={onSelectBuilding} onSelectAgent={onSelectAgent} highlighted={building.id === highlightedBuilding || highlightedBuildings.includes(building.id)} occupants={agents.filter(agent => agent.insideBuildingId === building.id)} />)}
+    {populationStage >= 2 && renderedAgents.filter(agent => !agent.insideBuildingId).map(agent => <Agent key={agent.id} agent={agent} selected={agent.id === selectedAgent} highlighted={agent.id === highlightedAgent || highlightedAgents.includes(agent.id)} onSelect={onSelectAgent} />)}
+    <NetworkOverlay key={`${mode}-${selectedAgent ?? selectedBuilding?.id ?? 'none'}`} mode={mode} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} buildings={world?.buildings || []} />
     <CameraRig mode={mode} cameraPreset={cameraPreset} followedAgent={followedAgent} findTarget={findTarget} agents={agents} cameraResetKey={cameraResetKey} onCustomView={onCustomView} />
     <SelectionAnchor selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} onAnchorChange={onAnchorChange} />
   </Canvas>

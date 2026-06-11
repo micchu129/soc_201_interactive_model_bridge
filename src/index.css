@@ -11,10 +11,11 @@ button { cursor: pointer; }
 .canvas-layer { z-index: 0; }
 .topbar { position: fixed; z-index: 20; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: .75rem 1rem; pointer-events: none; }
 .topbar button { pointer-events: auto; }
-.brand { color: #99c9da; background: none; border: 0; letter-spacing: .2em; font-size: .58rem; }
+.brand { color: #99c9da; background: none; border: 0; letter-spacing: .2em; font-size: .58rem; display: flex; align-items: center; gap: .55rem; }
+.beta-badge { color: #231b05; background: #f3cc55; border: 1px solid #fff0a8; border-radius: 999px; padding: .18rem .38rem; font-size: .42rem; letter-spacing: .1em; box-shadow: 0 0 .7rem #e4bd4555; }
 .top-actions { display: flex; gap: .45rem; }
 .camera-button { border-radius: 999px; width: auto; padding: 0 .85rem; font-size: .58rem; }
-.mode-nav { display: flex; gap: .4rem; padding: .35rem; border: 1px solid #334555; border-radius: 999px; background: #07101bdd; }
+.mode-nav { position: fixed; z-index: 25; left: 50%; bottom: 1rem; transform: translateX(-50%); display: flex; gap: .4rem; padding: .35rem; border: 1px solid #334555; border-radius: 999px; background: #07101bdd; }
 .mode-nav button, .speed-controls button { border: 0; background: transparent; color: #8ea0af; text-transform: uppercase; padding: .55rem 1rem; border-radius: 999px; }
 .mode-nav button.active, .speed-controls button.active { background: #7dd9ed; color: #07111b; }
 .panel { background: linear-gradient(145deg, #111a28ee, #07101ae8); border: 1px solid #40516388; box-shadow: 0 24px 70px #0008; backdrop-filter: blur(18px); border-radius: 1.2rem; }
@@ -42,8 +43,9 @@ button { cursor: pointer; }
 .icon-button { display: grid; place-items: center; min-width: 2.5rem; height: 2.5rem; border: 1px solid #405366; border-radius: 50%; background: #0d1824dd; color: #dceaf1; }
 .details-panel { position: fixed; z-index: 15; width: min(30rem, calc(100vw - 3rem)); max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; transform: translate(-50%, 0); }
 .drag-handle { cursor: move; user-select: none; }
+.move-grip { display: grid; place-items: center; flex: 0 0 1.7rem; height: 1.7rem; border: 1px solid #52687a; border-radius: .4rem; color: #bad4df; background: #ffffff08; }
 .detail-connector { position: fixed; z-index: 14; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
-.detail-connector line { stroke: #8be7f7; stroke-width: 3; opacity: .9; filter: drop-shadow(0 0 4px #7ed9ed); }
+.detail-connector path { fill: none; stroke: #8be7f7; stroke-width: .25; stroke-linecap: round; stroke-linejoin: round; opacity: .9; filter: drop-shadow(0 0 3px #7ed9ed); vector-effect: non-scaling-stroke; }
 .section-heading { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
 .section-heading h2 { margin: .25rem 0; }
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem; margin-top: 1rem; }
@@ -51,7 +53,7 @@ button { cursor: pointer; }
 .stat-grid strong { display: block; color: #eaf2f6; font-size: .9rem; margin-top: .25rem; text-transform: none; }
 .sim-controls { position: fixed; z-index: 20; left: 1rem; top: 3.4rem; display: flex; align-items: center; gap: 1rem; padding: .78rem .9rem; font-size: 1.154rem; }
 .sim-controls strong { font-size: 1.48rem; }
-.sim-controls span { display: block; color: #8ca0af; font-size: .62rem; }
+.sim-controls span { display: block; color: #b1c2cd; font-size: .82rem; margin-top: .12rem; }
 .speed-controls { display: flex; }
 .speed-controls button { min-width: 2.4rem; padding: .55rem .45rem; }
 .directory-button { position: fixed; z-index: 20; left: 1rem; top: 9.6rem; width: auto; height: auto; min-height: 2.4rem; padding: .55rem .85rem; border: 1px solid #405366; border-radius: .7rem; color: #dce8ee; font-size: .62rem; }
@@ -82,6 +84,12 @@ button { cursor: pointer; }
 .history-chart svg { width: 100%; height: 6rem; margin-top: .5rem; overflow: visible; }
 .history-chart path { fill: none; stroke: #405163; stroke-width: .8; }
 .history-chart polyline { fill: none; stroke: #7ed9ed; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.history-chart .tick-lines path { stroke: #718493; stroke-width: .5; }
+.history-tabs { display: flex; gap: .4rem; margin-top: .8rem; }
+.history-tabs button { border: 1px solid #405163; border-radius: 999px; background: #111a28; color: #9fb2bf; padding: .35rem .65rem; font-size: .62rem; }
+.history-tabs button.active { color: #07111b; background: #7ed9ed; }
+.stage-legend { display: flex; flex-wrap: wrap; gap: .35rem .6rem; margin-top: .4rem; }
+.stage-legend i { font-size: .55rem; font-style: normal; }
 .modal-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; background: #02050ac9; padding: 1rem; }
 .modal-card, .options-card { width: min(42rem, 94vw); padding: 1.7rem; }
 .modal-card p:not(.kicker) { color: #b5c4ce; font-size: 1rem; }
@@ -96,8 +104,11 @@ button { cursor: pointer; }
 .settings-menu button.danger { color: #ff9eaa; }
 .scale-control { display: block; padding: .8rem; margin: .6rem 0; border-radius: .7rem; background: #ffffff08; }
 .scale-control span { display: flex; justify-content: space-between; margin-bottom: .4rem; }
-.tutorial-overlay { position: fixed; z-index: 50; left: 50%; bottom: 2rem; transform: translateX(-50%); width: min(42rem, 92vw); padding: 1.4rem; }
+.tutorial-overlay { position: fixed; z-index: 50; transform: translate(-50%, -50%); width: min(42rem, 92vw); padding: 1.4rem; }
 .tutorial-overlay h2 { font-size: 2rem; margin: .2rem 0; }
+.tutorial-drag { display: flex; gap: .65rem; align-items: center; }
+.tutorial-footer { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+.tutorial-skip { margin-left: auto; padding: .25rem; border: 0; background: transparent; color: #8396a4; font-size: .62rem; text-decoration: underline; text-underline-offset: .2rem; }
 .tutorial-action { margin: .8rem 0 0; padding: .65rem .8rem; border-left: .2rem solid #7ed9ed; background: #7ed9ed12; color: #b8dce6; }
 .tutorial-highlight { outline: .12rem solid #7ed9ed; outline-offset: .25rem; border-radius: .7rem; box-shadow: 0 0 1.4rem #7ed9ed55; }
 .danger-button { color: #ffadb7; border-color: #c85868; }
@@ -119,4 +130,21 @@ button { cursor: pointer; }
 .neuro-grid i { display: block; height: .28rem; margin-top: .2rem; border-radius: 999px; overflow: hidden; background: #ffffff12; }
 .neuro-grid b { display: block; height: 100%; background: linear-gradient(90deg, #7ed9ed, #aa88df); }
 .centered-check { justify-content: center; }
-@media (max-width: 900px) { :root { --ui-base-size: 16px; }.hero-overlay h1 { white-space: normal; }.macro-layout .macro-canvas { inset: 0; width: 100%; }.macro-console { width: calc(100vw - 2rem); inset: auto 1rem 1rem; max-height: 60vh; padding: .3rem; border: 0; background: transparent; }.mode-nav { position: fixed; top: 3.8rem; left: 50%; transform: translateX(-50%); }.details-panel { width: calc(100vw - 2rem); }.outcome-grid { grid-template-columns: repeat(2, 1fr); }.option-grid { grid-template-columns: 1fr; }.directory-button { top: 9.5rem; } }
+.about-details { margin-top: .8rem; padding: .7rem; border-top: 1px solid #405163; color: #9eb0bd; font-size: .65rem; }
+.about-details summary { cursor: pointer; color: #c4d5de; }
+@media (max-width: 900px) {
+  :root { --ui-base-size: 16px; }
+  .hero-overlay h1 { white-space: normal; }
+  .macro-layout .macro-canvas { inset: 0; width: 100%; }
+  .macro-console { width: calc(100vw - 2rem); inset: auto 1rem 4.8rem; max-height: 64vh; padding: .3rem; border: 0; background: transparent; }
+  .mode-nav { bottom: .65rem; max-width: calc(100vw - 6rem); }
+  .details-panel, .tutorial-overlay { left: 1rem !important; right: 1rem; top: auto !important; bottom: 4.8rem; width: auto; transform: none; border-radius: 1.2rem 1.2rem .5rem .5rem; transition: max-height .2s ease; }
+  .details-panel.sheet-0 { max-height: 22vh; }.details-panel.sheet-1 { max-height: 48vh; }.details-panel.sheet-2 { max-height: 78vh; }
+  .tutorial-overlay { overflow-y: auto; transition: max-height .2s ease; }
+  .tutorial-overlay.sheet-0 { max-height: 25vh; }.tutorial-overlay.sheet-1 { max-height: 52vh; }.tutorial-overlay.sheet-2 { max-height: 78vh; }
+  .outcome-grid { grid-template-columns: repeat(2, 1fr); }
+  .option-grid { grid-template-columns: 1fr; }
+  .directory-button { top: 9.5rem; }
+  .sim-controls { right: 1rem; top: 3.4rem; justify-content: space-between; }
+  .camera-presets { right: .35rem; }
+}

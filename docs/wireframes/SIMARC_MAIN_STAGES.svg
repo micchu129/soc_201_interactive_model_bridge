@@ -66,11 +66,12 @@
   <!-- Micro -->
   <g id="Micro" transform="translate(1240 920)">
     <rect class="frame" width="1080" height="760" rx="28"/>
-    <text class="label" x="42" y="48">04 / MICRO</text>
+    <text class="label" x="42" y="48">04 / MICRO · SPHERE OCCUPANCY</text>
     <g transform="translate(100 90)">
       <path d="M0 310 360 100 720 310 360 520Z" fill="#101a27" stroke="#365062" stroke-width="3"/>
       <g class="building"><rect x="220" y="230" width="110" height="180"/><rect x="480" y="210" width="110" height="160"/></g>
       <circle fill="#e47768" cx="405" cy="290" r="24"/><circle fill="none" stroke="#fff" stroke-width="5" cx="405" cy="290" r="37"/>
+      <circle fill="#e47768" cx="260" cy="215" r="9"/><circle fill="#a9d77b" cx="282" cy="215" r="9"/><circle fill="#e2ca70" cx="260" cy="193" r="9"/><circle fill="#b879c9" cx="282" cy="193" r="9"/>
     </g>
     <rect class="panel" x="690" y="215" width="330" height="350" rx="18"/>
     <text class="label" x="720" y="255">RESIDENT 047</text>
@@ -82,11 +83,12 @@
   <!-- Meso -->
   <g id="Meso" transform="translate(80 1760)">
     <rect class="frame" width="1080" height="760" rx="28"/>
-    <text class="label" x="42" y="48">05 / MESO</text>
+    <text class="label" x="42" y="48">05 / MESO · EXPANDABLE NETWORK HUB</text>
     <g transform="translate(180 100)">
       <path d="M0 250 360 40 720 250 360 460Z" fill="#101a27" stroke="#365062" stroke-width="3"/>
       <path d="M170 270 350 160 540 280M350 160 420 365M170 270 420 365M540 280 420 365" stroke="#7ed9ed" stroke-width="4" opacity=".65"/>
       <circle class="agent" cx="170" cy="270" r="18"/><circle fill="#e47768" cx="350" cy="160" r="18"/><circle fill="#a9d77b" cx="540" cy="280" r="18"/><circle fill="#b879c9" cx="420" cy="365" r="18"/>
+      <circle fill="#fff4ad" cx="350" cy="100" r="15"/><circle fill="#67e8f9" cx="310" cy="62" r="11"/><circle fill="#ffe36e" cx="390" cy="62" r="11"/>
     </g>
     <rect class="panel" x="80" y="600" width="500" height="105" rx="18"/>
     <text class="label" x="115" y="642">MESO LAYER</text>
@@ -96,7 +98,7 @@
   <!-- Macro -->
   <g id="Macro" transform="translate(1240 1760)">
     <rect class="frame" width="1080" height="760" rx="28"/>
-    <text class="label" x="42" y="48">06 / MACRO</text>
+    <text class="label" x="42" y="48">06 / MACRO · COMPACT OCCUPANCY + HISTORY</text>
     <rect class="panel" x="25" y="75" width="400" height="650" rx="18"/>
     <text class="label" x="55" y="120">POLICY LAB</text>
     <text x="55" y="165" font-size="32">Apply an intervention</text>

@@ -5,6 +5,7 @@ import { normalizeDistribution } from './validation'
 
 const GRID = 13
 const ROLLING_CONSUMPTION_MINUTES = 24 * 60
+const HISTORY_SAMPLE_MINUTES = 120
 const road = value => value === 0 || value === GRID - 1 || value % 4 === 0
 const key = (x, z) => `${x}-${z}`
 const specialNames = {
@@ -231,6 +232,19 @@ export function outcomesFromState(state) {
     treatment: agents.filter(agent => agent.activity === 'in treatment').length,
     averageHealth: average('health').toFixed(0),
     averageBac: average('bac').toFixed(2),
+  }
+}
+
+export function historySampleFromState(state, previousMinute = state.simMinutes - HISTORY_SAMPLE_MINUTES) {
+  const agents = state.agents || []
+  const intervalUnits = agents.reduce((sum, agent) => sum + (agent.consumptionEvents || [])
+    .filter(event => event.minute > previousMinute && event.minute <= state.simMinutes)
+    .reduce((units, event) => units + event.units, 0), 0)
+  return {
+    minute: state.simMinutes,
+    intervalConsumption: agents.length ? Number((intervalUnits / agents.length).toFixed(2)) : 0,
+    outcomes: outcomesFromState(state),
+    stages: Array.from({ length: 7 }, (_, index) => agents.filter(agent => agent.stage === index + 1).length),
   }
 }
 

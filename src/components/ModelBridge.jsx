@@ -3,8 +3,8 @@ import { populationDefaults } from '../config/populationDefaults'
 import { policyDefaults } from '../config/policyDefaults'
 import { tutorialSteps } from '../config/tutorialSteps'
 import { worldDefaults } from '../config/worldDefaults'
-import { speedOptions } from '../simulation/clock'
-import { advanceRender, createPopulation, createWorld, decisionTick, outcomesFromState } from '../simulation/engine'
+import { calendarFromMinutes, speedOptions } from '../simulation/clock'
+import { advanceRender, createPopulation, createWorld, decisionTick, historySampleFromState } from '../simulation/engine'
 import { applyPolicies } from '../simulation/policyRules'
 import { validateOptions } from '../simulation/validation'
 import AdvancedOptions from './AdvancedOptions'
@@ -18,27 +18,29 @@ import TutorialOverlay from './TutorialOverlay'
 const IS_DEV_PREVIEW = window.location.pathname.includes('/dev/')
 const storageKey = key => `simarc-${IS_DEV_PREVIEW ? 'dev-' : ''}${key}`
 const STORAGE_KEY = storageKey('bridge-v4')
-const STORAGE_VERSION = 5
+const STORAGE_VERSION = 6
+const INITIAL_SIM_MINUTES = 720
 const FIXED_SIM_STEP = .25
 const MAX_SIM_STEPS_PER_FRAME = 32
+const HISTORY_LIMIT = 30 * 12
 const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms))
 const initialState = {
   mode: 'hero', worldStage: 0, populationStage: 0, world: createWorld(worldDefaults), agents: [],
   worldOptions: worldDefaults, populationOptions: populationDefaults, policies: policyDefaults,
-  pendingPolicies: null, simMinutes: 0, speed: 0, calendar: { day: 'Saturday', week: 1, time: '00:00', period: 'Night', weekend: true }, history: [],
+  pendingPolicies: null, simMinutes: INITIAL_SIM_MINUTES, speed: 0, calendar: calendarFromMinutes(INITIAL_SIM_MINUTES), history: [],
 }
 
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    if (![4, STORAGE_VERSION].includes(saved?.version)) return initialState
+    if (![4, 5, STORAGE_VERSION].includes(saved?.version)) return initialState
     const workplaces = (saved.state.world?.buildings || []).filter(building => ['hospital', 'rehab', 'police', 'shop', 'bar', 'club'].includes(building.type))
     return {
       ...saved.state,
+      calendar: calendarFromMinutes(saved.state.simMinutes ?? INITIAL_SIM_MINUTES),
       history: saved.version === STORAGE_VERSION ? saved.state.history || [] : [],
       agents: (saved.state.agents || []).map((agent, index) => ({
-        ...agent,
-        consumptionEvents: agent.consumptionEvents || [],
+        ...agent, consumptionEvents: agent.consumptionEvents || [],
         workplaceId: agent.workplaceId || workplaces[(index * 5 + agent.stage) % workplaces.length]?.id,
       })),
     }
@@ -57,6 +59,7 @@ export default function ModelBridge() {
   const [panel, setPanel] = useState(null)
   const [tutorialEnabled, setTutorialEnabled] = useState(() => localStorage.getItem(storageKey('tutorial-enabled')) !== 'false')
   const [tutorialStep, setTutorialStep] = useState(null)
+  const [tutorialActions, setTutorialActions] = useState({})
   const [dismissedCaptions, setDismissedCaptions] = useState(() => JSON.parse(localStorage.getItem(storageKey('dismissed-captions')) || '{}'))
   const [uiScale, setUiScale] = useState(() => Number(localStorage.getItem(storageKey('ui-scale-v3'))) || .75)
   const [cameraResetKey, setCameraResetKey] = useState(0)
@@ -65,6 +68,16 @@ export default function ModelBridge() {
   const lastFrame = useRef(0)
   const simulationAccumulator = useRef(0)
   const lastDecisionBoundary = useRef(Math.floor(state.simMinutes / 120))
+  const tutorialSnapshot = useRef(null)
+
+  const tutorial = tutorialStep == null ? null : tutorialSteps[tutorialStep]
+  const noteTutorialAction = action => setTutorialActions(current => ({ ...current, [action]: true }))
+  const clearSelection = () => { setSelectedAgent(null); setSelectedBuilding(null); setFollowedAgent(null); setHighlightedAgent(null); setHighlightedBuilding(null) }
+  const closePanels = () => { setPanel(null); noteTutorialAction('close-panel') }
+  function finishTutorial() {
+    setTutorialStep(null); setTutorialActions({ 'unlock-agent': true, 'unlock-building': true })
+    setHighlightedAgent(null); setHighlightedBuilding(null); setState(current => ({ ...current, speed: 1 }))
+  }
 
   useEffect(() => {
     const id = window.setTimeout(() => localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STORAGE_VERSION, state })), 180)
@@ -92,7 +105,7 @@ export default function ModelBridge() {
             lastDecisionBoundary.current = boundary
             if (next.pendingPolicies) next = { ...next, policies: applyPolicies(next.policies, next.pendingPolicies), pendingPolicies: null }
             next = decisionTick(next)
-            next = { ...next, history: [...(next.history || []), { minute: next.simMinutes, consumption: Number(outcomesFromState(next).consumption) }].slice(-80) }
+            next = { ...next, history: [...(next.history || []), historySampleFromState(next, next.simMinutes - 120)].slice(-HISTORY_LIMIT) }
           }
         }
         return next
@@ -103,17 +116,44 @@ export default function ModelBridge() {
     return () => cancelAnimationFrame(frame)
   }, [state.speed, state.agents.length])
   useEffect(() => { if (state.speed === 0) simulationAccumulator.current = 0 }, [state.speed])
+  useEffect(() => {
+    if (!tutorial?.auto || !tutorialActions[tutorial.requirement]) return
+    const id = window.setTimeout(() => {
+      if (tutorial.requirement === 'settings') setPanel(null)
+      if (tutorialStep === tutorialSteps.length - 1) finishTutorial()
+      else setTutorialStep(current => current + 1)
+    }, 350)
+    return () => window.clearTimeout(id)
+  }, [tutorial, tutorialActions, tutorialStep])
+  useEffect(() => {
+    if (tutorial?.requirement !== 'speed-demo' || tutorialActions['speed-demo-running']) return
+    tutorialSnapshot.current = structuredClone(state)
+    const start = window.setTimeout(() => {
+      setTutorialActions(current => ({ ...current, 'speed-demo-running': true }))
+      setState(current => ({ ...current, speed: 64 }))
+    }, 0)
+    const run = window.setTimeout(() => {
+      setState(current => ({ ...current, speed: 0 }))
+      setTutorialActions(current => ({ ...current, 'rewind-running': true }))
+      let frames = 0
+      const rewind = window.setInterval(() => {
+        frames += 1
+        setState(current => {
+          const simMinutes = Math.max(tutorialSnapshot.current.simMinutes, current.simMinutes - 240)
+          return { ...current, simMinutes, calendar: calendarFromMinutes(simMinutes) }
+        })
+        if (frames >= 12) {
+          window.clearInterval(rewind)
+          setState({ ...tutorialSnapshot.current, speed: 0 })
+          setTutorialActions(current => ({ ...current, 'speed-demo': true, 'rewind-running': false }))
+        }
+      }, 90)
+    }, 45000)
+    return () => { window.clearTimeout(start); window.clearTimeout(run) }
+  // Snapshot only once when the dedicated tutorial step starts.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tutorial?.requirement])
 
-  const closePanels = () => setPanel(null)
-  const clearSelection = () => { setSelectedAgent(null); setSelectedBuilding(null); setFollowedAgent(null); setHighlightedAgent(null); setHighlightedBuilding(null) }
-  const openAdvanced = type => {
-    closePanels()
-    setPanel(localStorage.getItem(storageKey('dismiss-advanced-warning')) === 'true' ? `advanced-${type}` : `warning-${type}`)
-  }
-  const proceedAdvanced = dismiss => {
-    if (dismiss) localStorage.setItem(storageKey('dismiss-advanced-warning'), 'true')
-    setPanel(panel.replace('warning-', 'advanced-'))
-  }
   const generateWorld = async () => {
     closePanels()
     setState(current => ({ ...current, mode: 'generation', world: createWorld(validateOptions(current.worldOptions)), worldStage: 0 }))
@@ -138,17 +178,13 @@ export default function ModelBridge() {
     await wait(900)
     setState(current => ({ ...current, agents: createPopulation(current.populationOptions, current.world), populationStage: 2 }))
     await wait(1500)
-    setState(current => decisionTick({ ...current, mode: 'micro', speed: tutorialEnabled ? 0 : 1 }))
+    setState(current => decisionTick({ ...current, mode: 'micro', speed: tutorialEnabled ? 0 : 1, simMinutes: INITIAL_SIM_MINUTES, calendar: calendarFromMinutes(INITIAL_SIM_MINUTES), history: [] }))
     setCameraResetKey(key => key + 1)
-    if (tutorialEnabled) setTutorialStep(0)
+    if (tutorialEnabled) { setTutorialActions({}); setTutorialStep(0) }
   }
   const changeMode = mode => {
-    closePanels()
-    setFollowedAgent(null)
-    setFindTarget(null)
-    setCameraPreset(null)
-    setCameraResetKey(key => key + 1)
-    setState(current => ({ ...current, mode }))
+    closePanels(); setFollowedAgent(null); setFindTarget(null); setCameraPreset(null); setCameraResetKey(key => key + 1)
+    setState(current => ({ ...current, mode })); noteTutorialAction(mode)
   }
   const resetEverything = () => {
     localStorage.removeItem(STORAGE_KEY)
@@ -156,48 +192,24 @@ export default function ModelBridge() {
   }
   const restartSimulation = () => {
     closePanels(); setCameraResetKey(key => key + 1)
-    setState(current => decisionTick({ ...current, agents: createPopulation(current.populationOptions, current.world), simMinutes: 0, speed: 1, mode: 'micro' }))
-  }
-  const finishTutorial = () => {
-    setTutorialStep(null)
-    setHighlightedAgent(null)
-    setHighlightedBuilding(null)
-    setState(current => ({ ...current, speed: 1 }))
+    setState(current => decisionTick({ ...current, agents: createPopulation(current.populationOptions, current.world), simMinutes: INITIAL_SIM_MINUTES, calendar: calendarFromMinutes(INITIAL_SIM_MINUTES), history: [], speed: 1, mode: 'micro' }))
   }
   const nextTutorial = () => tutorialStep === tutorialSteps.length - 1 ? finishTutorial() : setTutorialStep(step => step + 1)
-
-  const detailAgent = state.agents.find(agent => agent.id === selectedAgent)
-  const tutorial = tutorialStep == null ? null : tutorialSteps[tutorialStep]
-  const tutorialFriends = detailAgent ? (detailAgent.socialIds || []).map(id => state.agents.find(agent => agent.id === id)).filter(Boolean) : []
-  const tutorialNetwork = detailAgent ? [detailAgent, ...tutorialFriends] : []
-  const tutorialHighlightedAgents = tutorial?.highlight === 'friends' ? tutorialFriends.map(agent => agent.id) : []
-  const tutorialHighlightedBuildings = tutorial?.highlight === 'friends'
-    ? tutorialFriends.map(agent => agent.insideBuildingId).filter(Boolean)
-    : tutorial?.highlight === 'homes'
-    ? tutorialNetwork.map(agent => agent.home?.id).filter(Boolean)
-    : tutorial?.highlight === 'workplaces'
-      ? tutorialNetwork.map(agent => agent.workplaceId).filter(Boolean)
-      : tutorial?.highlight === 'gatherings'
-        ? tutorialNetwork.map(agent => agent.favoriteVenueId).filter(Boolean)
-        : []
-  const tutorialReady = !tutorial?.requirement
-    || (tutorial.requirement === 'building' && selectedBuilding != null)
-    || (tutorial.requirement === 'agent' && detailAgent != null)
-    || tutorial.requirement === state.mode
-  const activeMode = ['micro', 'meso', 'macro'].includes(state.mode) ? state.mode : 'overview'
-  const occupants = selectedBuilding ? state.agents.filter(agent => agent.insideBuildingId === selectedBuilding.id) : []
-  const residents = selectedBuilding?.type === 'home' ? state.agents.filter(agent => agent.home.id === selectedBuilding.id) : []
-  const labels = ['Preparing model', 'Paving roads', 'Laying foundations', 'Zoning land', 'Raising structures']
-  const dismissCaption = mode => {
-    const next = { ...dismissedCaptions, [mode]: true }
-    setDismissedCaptions(next)
-    localStorage.setItem(storageKey('dismissed-captions'), JSON.stringify(next))
-  }
+  const setSpeed = speed => { setState(current => ({ ...current, speed })); noteTutorialAction(speed === 0 ? 'pause' : 'play') }
+  const openAdvanced = type => { closePanels(); setPanel(localStorage.getItem(storageKey('dismiss-advanced-warning')) === 'true' ? `advanced-${type}` : `warning-${type}`) }
+  const proceedAdvanced = dismiss => { if (dismiss) localStorage.setItem(storageKey('dismiss-advanced-warning'), 'true'); setPanel(panel.replace('warning-', 'advanced-')) }
   const selectAgent = id => {
+    if (tutorial && !tutorialActions['unlock-agent'] && tutorial.requirement !== 'agent') return
     const agent = state.agents.find(item => item.id === id)
     setPanel(null); setFollowedAgent(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setHighlightedBuilding(agent?.insideBuildingId || null)
+    noteTutorialAction('agent'); noteTutorialAction('unlock-agent')
   }
-  const selectBuilding = building => { setPanel(null); setFollowedAgent(null); setSelectedAgent(null); setSelectedBuilding(building); setHighlightedBuilding(building?.id || null) }
+  const selectBuilding = building => {
+    if (!building) { clearSelection(); return }
+    if (tutorial && !tutorialActions['unlock-building'] && tutorial.requirement !== 'building') return
+    setPanel(null); setFollowedAgent(null); setSelectedAgent(null); setSelectedBuilding(building); setHighlightedBuilding(building.id)
+    noteTutorialAction('building'); noteTutorialAction('unlock-building')
+  }
   const followAgent = id => { setPanel(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setFollowedAgent(id); setFindTarget(null); setState(current => ({ ...current, mode: 'micro' })) }
   const findAgent = id => {
     const agent = state.agents.find(item => item.id === id)
@@ -207,30 +219,42 @@ export default function ModelBridge() {
     setFindTarget({ x: building?.x ?? agent.position.x, z: building?.z ?? agent.position.z, key: Date.now() }); setCameraPreset('custom'); setCameraResetKey(key => key + 1)
   }
 
+  const detailAgent = state.agents.find(agent => agent.id === selectedAgent)
+  const tutorialFriends = detailAgent ? (detailAgent.socialIds || []).map(id => state.agents.find(agent => agent.id === id)).filter(Boolean) : []
+  const tutorialNetwork = detailAgent ? [detailAgent, ...tutorialFriends] : []
+  const tutorialHighlightedAgents = tutorial?.highlight === 'friends' ? tutorialFriends.map(agent => agent.id) : []
+  const tutorialHighlightedBuildings = tutorial?.highlight === 'friends' ? tutorialFriends.map(agent => agent.insideBuildingId).filter(Boolean)
+    : tutorial?.highlight === 'homes' ? tutorialNetwork.map(agent => agent.home?.id).filter(Boolean)
+      : tutorial?.highlight === 'workplaces' ? tutorialNetwork.map(agent => agent.workplaceId).filter(Boolean)
+        : tutorial?.highlight === 'gatherings' ? tutorialNetwork.map(agent => agent.favoriteVenueId).filter(Boolean) : []
+  const tutorialReady = !tutorial?.requirement || Boolean(tutorialActions[tutorial.requirement])
+  const activeMode = ['micro', 'meso', 'macro'].includes(state.mode) ? state.mode : 'overview'
+  const occupants = selectedBuilding ? state.agents.filter(agent => agent.insideBuildingId === selectedBuilding.id) : []
+  const residents = selectedBuilding?.type === 'home' ? state.agents.filter(agent => agent.home.id === selectedBuilding.id) : []
+  const labels = ['Preparing model', 'Paving roads', 'Laying foundations', 'Zoning land', 'Raising structures']
+  const dismissCaption = mode => { const next = { ...dismissedCaptions, [mode]: true }; setDismissedCaptions(next); localStorage.setItem(storageKey('dismissed-captions'), JSON.stringify(next)) }
+
   return <main className={`app-shell ${state.mode === 'macro' ? 'macro-layout' : ''}`}>
     {IS_DEV_PREVIEW && <div className="dev-preview-banner">DEV PREVIEW</div>}
-    <div className={`canvas-layer ${state.mode === 'macro' ? 'macro-canvas' : ''}`}><CityScene world={state.world} generationProgress={generationProgress} agents={state.agents} populationStage={state.populationStage} mode={activeMode} cameraPreset={cameraPreset} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} followedAgent={followedAgent} highlightedAgent={highlightedAgent} highlightedBuilding={highlightedBuilding} highlightedAgents={tutorialHighlightedAgents} highlightedBuildings={tutorialHighlightedBuildings} findTarget={findTarget} simMinutes={state.simMinutes} cameraResetKey={cameraResetKey} onCustomView={() => setCameraPreset('custom')} onAnchorChange={setDetailAnchor} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} /></div>
-    <header className="topbar"><button className="brand" onClick={() => changeMode('hero')}>SIMARC / MODEL BRIDGE</button>{['micro', 'meso', 'macro'].includes(state.mode) && <div className="mode-nav">{['micro', 'meso', 'macro'].map(mode => <button key={mode} className={state.mode === mode ? 'active' : ''} onClick={() => changeMode(mode)}>{mode}</button>)}</div>}<button className="icon-button" onClick={() => { closePanels(); setPanel('settings') }}>⚙</button></header>
+    <div className={`canvas-layer ${state.mode === 'macro' ? 'macro-canvas' : ''}`}><CityScene world={state.world} generationProgress={generationProgress} agents={state.agents} populationStage={state.populationStage} mode={activeMode} cameraPreset={cameraPreset} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} followedAgent={followedAgent} highlightedAgent={highlightedAgent} highlightedBuilding={highlightedBuilding} highlightedAgents={tutorialHighlightedAgents} highlightedBuildings={tutorialHighlightedBuildings} findTarget={findTarget} simMinutes={state.simMinutes} cameraResetKey={cameraResetKey} onCustomView={() => { setCameraPreset('custom'); noteTutorialAction('camera') }} onAnchorChange={setDetailAnchor} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} /></div>
+    <header className="topbar"><button className="brand" onClick={() => changeMode('hero')}>SIMARC / MODEL BRIDGE <span className="beta-badge">BETA</span></button><button className="icon-button" onClick={() => { closePanels(); setPanel('settings'); noteTutorialAction('settings') }}>⚙</button></header>
+    {['micro', 'meso', 'macro'].includes(state.mode) && <div className="mode-nav">{['micro', 'meso', 'macro'].map(mode => <button key={mode} className={state.mode === mode ? 'active' : ''} onClick={() => changeMode(mode)}>{mode}</button>)}</div>}
 
     {state.mode === 'hero' && <section className="hero-overlay"><p className="kicker">Enter the model</p><h1>SimARC Bridge</h1><p>A playable interface for translating alcohol models into policy conversations.</p><button className="button primary" onClick={state.worldStage > 0 ? () => changeMode(state.agents.length ? 'micro' : 'population') : generateWorld}>{state.worldStage > 0 ? 'Resume model' : 'Initialize model'}</button>{state.worldStage === 0 && <button className="advanced-link" onClick={() => openAdvanced('world')}>Advanced options</button>}</section>}
     {state.mode === 'generation' && <section className="center-control panel"><p className="kicker">World initialization</p><h2>{labels[state.worldStage]}</h2><div className="progress"><span style={{ width: `${generationProgress * 100}%` }} /></div><p className="muted">Building a stable city context for the agent model.</p></section>}
-    {state.mode === 'population' && <section className="center-control panel"><p className="kicker">Population initialization</p><h2>{state.populationStage ? 'Assigning agents…' : 'Generate the population'}</h2><p>Populate homes, streets, venues, and alcohol-stage distributions.</p><label className="check-row centered-check"><input type="checkbox" checked={tutorialEnabled} onChange={event => { setTutorialEnabled(event.target.checked); localStorage.setItem(storageKey('tutorial-enabled'), String(event.target.checked)) }} /> Tutorial after generation</label><button className="button primary" disabled={state.populationStage > 0} onClick={generatePopulation}>Generate population</button><button className="advanced-link" disabled={state.populationStage > 0} onClick={() => openAdvanced('population')}>Advanced options</button></section>}
+    {state.mode === 'population' && <section className="center-control panel"><p className="kicker">Population initialization</p><h2>{state.populationStage ? 'Assigning agents...' : 'Generate the population'}</h2><p>Populate homes, streets, venues, and alcohol-stage distributions.</p><label className="check-row centered-check"><input type="checkbox" checked={tutorialEnabled} onChange={event => { setTutorialEnabled(event.target.checked); localStorage.setItem(storageKey('tutorial-enabled'), String(event.target.checked)) }} /> Tutorial after generation</label><button className="button primary" disabled={state.populationStage > 0} onClick={generatePopulation}>Generate population</button><button className="advanced-link" disabled={state.populationStage > 0} onClick={() => openAdvanced('population')}>Advanced options</button></section>}
     {tutorialStep == null && ['micro', 'meso'].includes(state.mode) && !dismissedCaptions[state.mode] && <section className="mode-caption panel"><button className="caption-close" onClick={() => dismissCaption(state.mode)}>×</button><p className="kicker">{state.mode} layer</p><h2>{state.mode === 'micro' ? 'Follow individual lives' : 'See networks and shared places'}</h2><p>{state.mode === 'micro' ? 'Click an agent to inspect their current state.' : 'Orbit the city to understand shared routes and places.'}</p></section>}
-    {state.mode === 'macro' && <PolicyConsole state={state} tutorialHighlight={tutorial?.mode === 'macro' ? tutorial.highlight : null} onSpeed={speed => setState(current => ({ ...current, speed }))} onApply={policies => setState(current => ({ ...current, pendingPolicies: policies }))} />}
-    {panel == null && state.mode !== 'macro' && <DetailsPanel building={selectedBuilding} agent={detailAgent} agents={state.agents} buildings={state.world.buildings} mode={state.mode} anchor={detailAnchor} occupants={occupants} residents={residents} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} onFollowAgent={followAgent} onClose={() => { setSelectedAgent(null); setSelectedBuilding(null) }} />}
-    {state.worldStage > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <nav className="camera-presets panel" aria-label="Camera views">
-      <span>Views</span>
-      {[['default', 'Default', '◇'], ['street', 'Street', '▥'], ['top', 'Top', '▦'], ['custom', 'Custom', '✥']].map(([preset, label, icon]) => <button key={preset} className={(cameraPreset || 'default') === preset ? 'active' : ''} title={label} disabled={preset === 'custom'} onClick={() => { setFollowedAgent(null); setFindTarget(null); setCameraPreset(preset === 'default' ? null : preset); setCameraResetKey(key => key + 1) }}><b>{icon}</b><small>{label}</small></button>)}
-    </nav>}
-
-    {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <footer className="sim-controls panel"><div><strong>{state.calendar.time}</strong><span>{state.calendar.day} · Week {state.calendar.week} · {state.calendar.period}</span></div><div className="speed-controls">{speedOptions.map(speed => <button key={speed} disabled={tutorial != null} className={state.speed === speed ? 'active' : ''} onClick={() => setState(current => ({ ...current, speed }))}>{speed === 0 ? '❚❚' : speed === 1 ? '▶' : `${speed}×`}</button>)}</div></footer>}
+    {state.mode === 'macro' && <PolicyConsole state={state} tutorialHighlight={tutorial?.mode === 'macro' ? tutorial.highlight : null} onSpeed={setSpeed} onApply={policies => { setState(current => ({ ...current, pendingPolicies: policies })); noteTutorialAction('policy') }} />}
+    {panel == null && state.mode !== 'macro' && <DetailsPanel building={selectedBuilding} agent={detailAgent} agents={state.agents} buildings={state.world.buildings} mode={state.mode} anchor={detailAnchor} occupants={occupants} residents={residents} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} onFollowAgent={followAgent} onMove={() => noteTutorialAction('move-panel')} onClose={() => { clearSelection(); noteTutorialAction('close-panel') }} />}
+    {state.worldStage > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <nav className="camera-presets panel" aria-label="Camera views"><span>Views</span>{[['default', 'Default', '◇'], ['street', 'Street', '▥'], ['top', 'Top', '▦'], ['custom', 'Custom', '✥']].map(([preset, label, icon]) => <button key={preset} className={(cameraPreset || 'default') === preset ? 'active' : ''} title={label} disabled={preset === 'custom'} onClick={() => { setFollowedAgent(null); setFindTarget(null); setCameraPreset(preset === 'default' ? null : preset); setCameraResetKey(key => key + 1); noteTutorialAction('camera') }}><b>{icon}</b><small>{label}</small></button>)}</nav>}
+    {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <footer className="sim-controls panel"><div><strong>{state.calendar.time}</strong><span>Day {String(state.calendar.dayNumber).padStart(3, '0')} · {state.calendar.day} · Week {state.calendar.week} · {state.calendar.period}</span></div><div className="speed-controls">{speedOptions.map(speed => <button key={speed} disabled={tutorial != null && !['pause', 'play'].includes(tutorial?.requirement)} className={state.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)}>{speed === 0 ? '❚❚' : speed === 1 ? '▶' : `${speed}×`}</button>)}</div></footer>}
     {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <button className="directory-button panel" onClick={() => { closePanels(); setPanel('directory') }}>☷ Agent Directory</button>}
-    {state.worldStage > 0 && state.mode !== 'hero' && <button className="help-button panel" onClick={() => { closePanels(); setPanel('camera-help') }}>?</button>}
+    {state.worldStage > 0 && state.mode !== 'hero' && <button className="help-button panel" onClick={() => { closePanels(); setPanel('camera-help'); noteTutorialAction('help') }}>?</button>}
 
-    {panel === 'settings' && <aside className="panel settings-menu"><div className="section-heading"><h2>Model settings</h2><button className="icon-button" onClick={closePanels}>×</button></div><label className="scale-control"><span>UI scale <strong>{Math.round(uiScale * 100)}%</strong></span><input type="range" min=".75" max="1.5" step=".05" value={uiScale} onChange={event => setUiScale(Number(event.target.value))} /></label>{state.agents.length > 0 && <button onClick={() => { closePanels(); setState(current => ({ ...current, speed: 0 })); setTutorialStep(0); changeMode('micro') }}>Start guided tutorial</button>}<button onClick={restartSimulation}>Restart simulation</button><button onClick={() => { closePanels(); setState(current => ({ ...current, agents: [], populationStage: 0, mode: 'population', speed: 0 })) }}>Regenerate population</button><button className="danger" onClick={resetEverything}>Reset everything</button></aside>}
+    {panel === 'settings' && <aside className="panel settings-menu"><div className="section-heading"><h2>Model settings</h2><button className="icon-button" onClick={closePanels}>×</button></div><label className="scale-control"><span>UI scale <strong>{Math.round(uiScale * 100)}%</strong></span><input type="range" min=".75" max="1.5" step=".05" value={uiScale} onChange={event => setUiScale(Number(event.target.value))} /></label>{state.agents.length > 0 && <button onClick={() => { closePanels(); setState(current => ({ ...current, speed: 0 })); setTutorialActions({}); setTutorialStep(0); changeMode('micro') }}>Start guided tutorial</button>}<button onClick={restartSimulation}>Restart simulation</button><button onClick={() => { closePanels(); setState(current => ({ ...current, agents: [], populationStage: 0, mode: 'population', speed: 0 })) }}>Regenerate population</button><button className="danger" onClick={resetEverything}>Reset everything</button><details className="about-details"><summary>About this beta</summary><p><strong>Bridge v0.3.0-beta.2</strong><br />SimARC 2.2 · NetLogo 7.0.3</p><p>Creative interface-friendly decisions simplify, omit, and add behavior relative to the source model. Outputs remain illustrative and are not validated policy predictions.</p></details></aside>}
     {panel === 'camera-help' && <aside className="panel camera-help"><div className="section-heading"><h2>Camera controls</h2><button className="icon-button" onClick={closePanels}>×</button></div><p><strong>Left drag</strong> orbit</p><p><strong>Right drag</strong> pan</p><p><strong>Scroll</strong> zoom</p><p><strong>W A S D</strong> move within the city bounds</p><p>Manual movement activates the <strong>Custom</strong> view.</p><p><strong>Micro</strong> follows individual lives. <strong>Meso</strong> reveals networks. <strong>Macro</strong> opens the policy lab.</p><button className="button secondary wide" onClick={() => { setDismissedCaptions({}); localStorage.removeItem(storageKey('dismissed-captions')); closePanels() }}>Restore mode tips</button></aside>}
     {panel === 'directory' && <AgentDirectory agents={state.agents} onClose={closePanels} onFind={findAgent} onFollow={followAgent} onHighlight={id => { setHighlightedBuilding(null); setHighlightedAgent(current => current === id ? null : id) }} onDetails={selectAgent} />}
-    {tutorial && <TutorialOverlay step={tutorial} stepNumber={tutorialStep + 1} totalSteps={tutorialSteps.length} ready={tutorialReady} onNext={nextTutorial} onSkip={finishTutorial} />}
+    {tutorial && <TutorialOverlay step={tutorial} stepNumber={tutorialStep + 1} totalSteps={tutorialSteps.length} ready={tutorialReady} rewinding={tutorialActions['rewind-running']} onMove={() => noteTutorialAction('move-panel')} onNext={nextTutorial} onSkip={finishTutorial} />}
     {panel?.startsWith('warning-') && <AdvancedWarning onBack={closePanels} onProceed={proceedAdvanced} />}
     {panel?.startsWith('advanced-') && <AdvancedOptions type={panel.replace('advanced-', '')} values={panel.endsWith('world') ? state.worldOptions : state.populationOptions} onChange={values => setState(current => ({ ...current, [panel.endsWith('world') ? 'worldOptions' : 'populationOptions']: values }))} onClose={closePanels} />}
   </main>
