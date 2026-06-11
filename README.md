@@ -29,7 +29,7 @@ The simulation combines continuous visual movement with model decisions at two-h
 - Four policy controls: alcohol price, venue regulation, treatment access, and prevention.
 - Rolling outcomes and history views for 24 hours, 7 days, and 30 days.
 - Responsive desktop and mobile layouts with draggable panels and mobile bottom sheets.
-- Persistent browser state, clock format, tutorial progress, and UI scale.
+- Persistent browser state, clock format, tutorial progress, and Compact/Default/Large interface-size preference.
 - A 24-step action-driven tutorial, including a two-day accelerated demonstration that restores an exact saved snapshot.
 
 ## Model Scope And Limitations
@@ -58,7 +58,7 @@ npm install
 npm run dev
 ```
 
-Vite will print the local URL. Local and `/dev/` preview builds intentionally use separate browser-storage namespaces, so saved simulation state and UI scale do not transfer between them.
+Vite will print the local URL. Local and `/dev/` preview builds intentionally use separate browser-storage namespaces, so saved simulation state and interface-size preferences do not transfer between them.
 
 ## Quality Checks
 

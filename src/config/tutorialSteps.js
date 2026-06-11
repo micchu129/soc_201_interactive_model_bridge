@@ -21,6 +21,6 @@ export const tutorialSteps = [
   { mode: 'macro', title: 'Review controls and outcomes', body: 'Macro combines policy controls with rolling outcomes and structured history.', action: 'Review the controls and outcomes, then continue.' },
   { mode: 'macro', title: 'Review graphs and timescales', body: 'Charts show two-hour samples across 24-hour, 7-day, and 30-day windows.', action: 'Review graph timescales, then continue.' },
   { mode: 'macro', title: 'Apply a policy', body: 'Applied policy changes enter the simulation at the next two-hour decision boundary.', requirement: 'policy', auto: true, highlight: 'alcoholPrice', action: 'Apply a policy.' },
-  { mode: 'macro', title: 'Open settings', body: 'Settings contains UI scale, restart controls, version information, and the model-interface disclaimer.', requirement: 'settings', auto: true, action: 'Open settings.' },
+  { mode: 'macro', title: 'Open settings', body: 'Settings contains interface size, restart controls, version information, and the model-interface disclaimer.', requirement: 'settings', auto: true, action: 'Open settings.' },
   { mode: 'macro', title: 'Finish with help', body: 'Help summarizes camera controls and the purpose of Micro, Meso, and Macro.', requirement: 'help', auto: true, action: 'Open Help to finish.' },
 ]

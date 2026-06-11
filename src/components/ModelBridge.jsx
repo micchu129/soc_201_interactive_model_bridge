@@ -24,6 +24,11 @@ const INITIAL_SIM_MINUTES = 360
 const FIXED_SIM_STEP = .25
 const MAX_SIM_STEPS_PER_FRAME = 32
 const HISTORY_LIMIT = 30 * 12
+const interfaceSizeItems = [
+  { value: 'compact', label: 'Compact' },
+  { value: 'default', label: 'Default' },
+  { value: 'large', label: 'Large' },
+]
 const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms))
 const initialState = {
   mode: 'hero', worldStage: 0, populationStage: 0, world: createWorld(worldDefaults), agents: [],
@@ -63,12 +68,15 @@ export default function ModelBridge() {
   const [tutorialStep, setTutorialStep] = useState(() => savedTutorial?.step ?? null)
   const [tutorialActions, setTutorialActions] = useState(() => savedTutorial?.actions || {})
   const [dismissedCaptions, setDismissedCaptions] = useState(() => JSON.parse(localStorage.getItem(storageKey('dismissed-captions')) || '{}'))
-  const [uiScale, setUiScale] = useState(() => {
-    const current = Number(localStorage.getItem(storageKey('ui-scale-v5')))
-    if (current) return current
-    const beta3 = Number(localStorage.getItem(storageKey('ui-scale-v4')))
-    if (beta3) return beta3 === 1 ? 1 : beta3 * .75
-    return Number(localStorage.getItem(storageKey('ui-scale-v3'))) || 1
+  const [interfaceSize, setInterfaceSize] = useState(() => {
+    const saved = localStorage.getItem(storageKey('interface-size-v1'))
+    if (interfaceSizeItems.some(item => item.value === saved)) return saved
+    const previousScaleValue = localStorage.getItem(storageKey('ui-scale-v5'))
+    if (previousScaleValue == null) return 'default'
+    const previousScale = Number(previousScaleValue)
+    if (previousScale < .9) return 'compact'
+    if (previousScale > 1.1) return 'large'
+    return 'default'
   })
   const [clockFormat, setClockFormat] = useState(() => localStorage.getItem(storageKey('clock-format')) || '24h')
   const [skipGenerationAnimation, setSkipGenerationAnimation] = useState(false)
@@ -100,9 +108,9 @@ export default function ModelBridge() {
     return () => window.clearTimeout(id)
   }, [state])
   useEffect(() => {
-    localStorage.setItem(storageKey('ui-scale-v5'), String(uiScale))
-    document.documentElement.style.setProperty('--ui-scale', uiScale)
-  }, [uiScale])
+    localStorage.setItem(storageKey('interface-size-v1'), interfaceSize)
+    document.documentElement.dataset.interfaceSize = interfaceSize
+  }, [interfaceSize])
   useEffect(() => { localStorage.setItem(storageKey('clock-format'), clockFormat) }, [clockFormat])
   useEffect(() => {
     localStorage.setItem(storageKey('tutorial-session-v1'), JSON.stringify({ step: tutorialStep, actions: tutorialActions, snapshot: tutorialSnapshot.current, demoTarget: demoTargetMinutes, selectedAgent, selectedBuilding }))
@@ -215,7 +223,7 @@ export default function ModelBridge() {
     Object.keys(localStorage).filter(key => key.startsWith('simarc-')).forEach(key => localStorage.removeItem(key))
     tutorialSnapshot.current = null; setDemoTargetMinutes(null); skipGenerationRef.current = false
     simulationAccumulator.current = 0; lastDecisionBoundary.current = Math.floor(INITIAL_SIM_MINUTES / 120)
-    closePanels(); clearSelection(); setTutorialStep(null); setTutorialActions({}); setDismissedCaptions({}); setUiScale(1); setSkipGenerationAnimation(false); setNetworkCategory('all'); setRestorePhase(null); setGenerationProgress(0); setCameraPreset(null); setFindTarget(null); setCameraResetKey(key => key + 1); setState({ ...initialState, history: [historySampleFromState(initialState, INITIAL_SIM_MINUTES)] })
+    closePanels(); clearSelection(); setTutorialStep(null); setTutorialActions({}); setDismissedCaptions({}); setInterfaceSize('default'); setSkipGenerationAnimation(false); setNetworkCategory('all'); setRestorePhase(null); setGenerationProgress(0); setCameraPreset(null); setFindTarget(null); setCameraResetKey(key => key + 1); setState({ ...initialState, history: [historySampleFromState(initialState, INITIAL_SIM_MINUTES)] })
   }
   const restartSimulation = () => {
     closePanels(); setCameraResetKey(key => key + 1)
@@ -246,9 +254,10 @@ export default function ModelBridge() {
   }
   const selectBuilding = building => {
     if (!building) { clearSelection(); return }
-    if (tutorial && !['building', 'meso-building'].includes(tutorial.requirement)) return
     setPanel(null); setFollowedAgent(null); setSelectedAgent(null); setSelectedBuilding(building); setHighlightedBuilding(building.id)
-    noteTutorialAction(state.mode === 'meso' ? 'meso-building' : 'building'); noteTutorialAction('unlock-building')
+    const buildingAction = state.mode === 'meso' ? 'meso-building' : 'building'
+    if (!tutorial || tutorial.requirement === buildingAction) noteTutorialAction(buildingAction)
+    noteTutorialAction('unlock-building')
   }
   const followAgent = id => { setPanel(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setFollowedAgent(id); setFindTarget(null); setState(current => ({ ...current, mode: 'micro' })) }
   const findAgent = id => {
@@ -300,12 +309,12 @@ export default function ModelBridge() {
     {state.mode === 'population' && <section className="center-control panel"><p className="kicker">Population initialization</p><h2>{state.populationStage ? 'Assigning agents...' : 'Generate the population'}</h2><p>Populate homes, streets, venues, and alcohol-stage distributions.</p><label className="check-row centered-check"><input type="checkbox" checked={tutorialEnabled} onChange={event => { setTutorialEnabled(event.target.checked); localStorage.setItem(storageKey('tutorial-enabled'), String(event.target.checked)) }} /> Tutorial after generation</label><button className="button primary" disabled={state.populationStage > 0} onClick={generatePopulation}>Generate population</button><button className="advanced-link" disabled={state.populationStage > 0} onClick={() => openAdvanced('population')}>Advanced options</button></section>}
     {tutorialStep == null && ['micro', 'meso'].includes(state.mode) && !dismissedCaptions[state.mode] && <section className="mode-caption panel"><button className="caption-close" onClick={() => dismissCaption(state.mode)}>×</button><p className="kicker">{state.mode} layer</p><h2>{state.mode === 'micro' ? 'Follow individual lives' : 'See networks and shared places'}</h2><p>{state.mode === 'micro' ? 'Click an agent to inspect their current state.' : 'Orbit the city to understand shared routes and places.'}</p></section>}
     {state.mode === 'macro' && <PolicyConsole state={{ ...state, calendar: displayCalendar }} clockTimeLabel={displayTime} onToggleClockFormat={() => setClockFormat(current => current === '24h' ? '12h' : '24h')} tutorialHighlight={tutorial?.mode === 'macro' ? tutorial.highlight : null} onSpeed={setSpeed} onApply={policies => { setState(current => ({ ...current, pendingPolicies: policies })); noteTutorialAction('policy') }} />}
-    {panel == null && state.mode !== 'macro' && <DetailsPanel building={selectedBuilding} agent={detailAgent} agents={state.agents} buildings={state.world.buildings} mode={state.mode} networkCategory={networkCategory} anchor={detailAnchor} occupants={occupants} residents={residents} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} onFollowAgent={followAgent} onMove={() => noteTutorialAction('move-panel')} onClose={() => { noteTutorialAction(selectedAgent ? 'close-agent' : 'close-building'); clearSelection() }} />}
-    {state.worldStage > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <nav className="camera-presets panel" aria-label="Camera views"><span>Views</span>{[['default', 'Default', '◇'], ['street', 'Street', '▥'], ['top', 'Top', '▦'], ['custom', 'Custom', '✥']].map(([preset, label, icon]) => <button key={preset} className={(cameraPreset || 'default') === preset ? 'active' : ''} title={label} disabled={preset === 'custom'} onClick={() => { setFollowedAgent(null); setFindTarget(null); setCameraPreset(preset === 'default' ? null : preset); setCameraResetKey(key => key + 1); noteTutorialAction('camera-preset') }}><b>{icon}</b><small>{label}</small></button>)}</nav>}
+    {panel == null && state.mode !== 'macro' && <DetailsPanel building={selectedBuilding} agent={detailAgent} agents={state.agents} buildings={state.world.buildings} mode={state.mode} networkCategory={networkCategory} anchor={detailAnchor} occupants={occupants} residents={residents} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} onMove={() => noteTutorialAction('move-panel')} onClose={() => { noteTutorialAction(selectedAgent ? 'close-agent' : 'close-building'); clearSelection() }} />}
+    {panel == null && state.worldStage > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <nav className="camera-presets panel" aria-label="Camera views"><span>Views</span>{[['default', 'Default', '◇'], ['street', 'Street', '▥'], ['top', 'Top', '▦'], ['custom', 'Custom', '✥']].map(([preset, label, icon]) => <button key={preset} className={(cameraPreset || 'default') === preset ? 'active' : ''} title={label} disabled={preset === 'custom'} onClick={() => { setFollowedAgent(null); setFindTarget(null); setCameraPreset(preset === 'default' ? null : preset); setCameraResetKey(key => key + 1); noteTutorialAction('camera-preset') }}><b>{icon}</b><small>{label}</small></button>)}</nav>}
     {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <div className="time-control-stack"><section className="date-strip panel"><strong>Day {String(displayCalendar.dayNumber).padStart(3, '0')}</strong><div className="date-metadata"><span>{displayCalendar.day}</span><i>·</i><span>{displayCalendar.period}</span><i>·</i><span>Week {displayCalendar.week}</span></div></section><footer className="sim-controls panel"><button className="clock-display" title={`Switch to ${clockFormat === '24h' ? '12-hour' : '24-hour'} time`} onClick={() => setClockFormat(current => current === '24h' ? '12h' : '24h')}>{displayTime}</button><SlidingToggleGroup className="speed-controls" buttonClassName="speed-toggle-button" ariaLabel="Simulation speed" items={speedControlItems} value={state.speed} onChange={setSpeed} /></footer><button className="directory-button panel" onClick={() => { closePanels(); setPanel('directory'); noteTutorialAction('directory') }}>☷ Agent Directory</button></div>}
     {state.worldStage > 0 && state.mode !== 'hero' && <button className="help-button panel" onClick={() => { closePanels(); setPanel('camera-help'); noteTutorialAction('help') }}>?</button>}
 
-    {panel === 'settings' && <aside className="panel settings-menu"><div className="section-heading"><h2>Model settings</h2><button className="icon-button" onClick={closePanels}>×</button></div><label className="scale-control"><span>UI scale <strong>{Math.round(uiScale * 100)}%</strong></span><input type="range" min=".75" max="1.5" step=".05" value={uiScale} onChange={event => setUiScale(Number(event.target.value))} /></label>{state.agents.length > 0 && <button onClick={() => { closePanels(); setState(current => ({ ...current, speed: 0 })); setTutorialActions({}); setTutorialStep(0); changeMode('micro') }}>Start guided tutorial</button>}<button onClick={restartSimulation}>Restart simulation</button><button onClick={() => { closePanels(); setState(current => ({ ...current, agents: [], populationStage: 0, mode: 'population', speed: 0 })) }}>Regenerate population</button><button className="danger" onClick={resetEverything}>Reset everything</button><details className="about-details"><summary>About this beta</summary><p><strong>Bridge v0.3.0-beta.5</strong><br />SimARC 2.2 · NetLogo 7.0.3</p><p>Creative interface-friendly decisions simplify, omit, and add behavior relative to the source model. Outputs remain illustrative and are not validated policy predictions.</p></details></aside>}
+    {panel === 'settings' && <aside className="panel settings-menu"><div className="section-heading"><h2>Model settings</h2><button className="icon-button" onClick={closePanels}>×</button></div><div className="interface-size-control"><span>Interface size</span><SlidingToggleGroup ariaLabel="Interface size" items={interfaceSizeItems} value={interfaceSize} onChange={setInterfaceSize} /></div>{state.agents.length > 0 && <button onClick={() => { closePanels(); setState(current => ({ ...current, speed: 0 })); setTutorialActions({}); setTutorialStep(0); changeMode('micro') }}>Start guided tutorial</button>}<button onClick={restartSimulation}>Restart simulation</button><button onClick={() => { closePanels(); setState(current => ({ ...current, agents: [], populationStage: 0, mode: 'population', speed: 0 })) }}>Regenerate population</button><button className="danger" onClick={resetEverything}>Reset everything</button><details className="about-details"><summary>About this beta</summary><p><strong>Bridge v0.3.0-beta.6</strong><br />SimARC 2.2 · NetLogo 7.0.3</p><p>Creative interface-friendly decisions simplify, omit, and add behavior relative to the source model. Outputs remain illustrative and are not validated policy predictions.</p></details></aside>}
     {panel === 'camera-help' && <aside className="panel camera-help"><div className="section-heading"><h2>Camera controls</h2><button className="icon-button" onClick={closePanels}>×</button></div><p><strong>Left drag</strong> orbit</p><p><strong>Right drag</strong> pan</p><p><strong>Scroll</strong> zoom</p><p><strong>W A S D</strong> move within the city bounds</p><p>Manual movement activates the <strong>Custom</strong> view.</p><p><strong>Micro</strong> follows individual lives. <strong>Meso</strong> reveals networks. <strong>Macro</strong> opens the policy lab.</p><button className="button secondary wide" onClick={() => { setDismissedCaptions({}); localStorage.removeItem(storageKey('dismissed-captions')); closePanels() }}>Restore mode tips</button></aside>}
     {panel === 'directory' && <AgentDirectory agents={state.agents} onClose={closePanels} onFind={findAgent} onFollow={followAgent} onHighlight={id => { setHighlightedBuilding(null); setHighlightedAgent(current => current === id ? null : id) }} onDetails={selectAgent} />}
     {tutorial && <TutorialOverlay step={tutorial} stepNumber={tutorialStep + 1} totalSteps={tutorialSteps.length} ready={tutorialReady} rewinding={tutorialActions['rewind-running']} demoMinutesRemaining={demoMinutesRemaining} onMove={() => noteTutorialAction('move-panel')} onNext={nextTutorial} onSkip={finishTutorial} />}

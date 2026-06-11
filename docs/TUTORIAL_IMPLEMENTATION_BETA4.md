@@ -42,7 +42,7 @@ This document records the tutorial behavior implemented in the source code. It d
 | 20 | Macro | Review controls and outcomes | Macro combines policy controls with rolling outcomes and structured history. | Review the controls and outcomes, then continue. | User presses **Next**. | Gives time to orient to the policy lab. |
 | 21 | Macro | Review graphs and timescales | Charts show two-hour samples across 24-hour, 7-day, and 30-day windows. | Review graph timescales, then continue. | User presses **Next**. | Explains chart sampling and available history windows. |
 | 22 | Macro | Apply a policy | Applied policy changes enter the simulation at the next two-hour decision boundary. | Apply a policy. | User presses **Apply policy**; auto-advances. | Explains delayed policy application at a model decision boundary. |
-| 23 | Macro | Open settings | Settings contains UI scale, restart controls, version information, and the model-interface disclaimer. | Open settings. | User opens Settings; Settings closes automatically after about 850 ms; auto-advances. | Introduces persistent display controls and reset/version information. |
+| 23 | Macro | Open settings | Settings contains interface size, restart controls, version information, and the model-interface disclaimer. | Open settings. | User opens Settings; Settings closes automatically after about 850 ms; auto-advances. | Introduces persistent display controls and reset/version information. |
 | 24 | Macro | Finish with help | Help summarizes camera controls and the purpose of Micro, Meso, and Macro. | Open Help to finish. | User opens Help; tutorial finishes after about 850 ms. | Leaves the user with a permanent reference for navigation and model layers. |
 
 ## Two-Day Demonstration And Restoration
@@ -58,9 +58,9 @@ This document records the tutorial behavior implemented in the source code. It d
 ## Interaction Locks
 
 - During the tutorial, speed buttons are disabled except for the specifically requested Play, Pause, or 128× action.
-- Buildings can only be selected during step 5 (**Select a building**) and step 18 (**Building users**).
+- Buildings can be selected throughout the tutorial. Selecting one during step 5 (**Select a building**) or step 18 (**Building users**) completes that step's requested action.
 - Agents are initially locked until step 7 introduces selection. After that first agent selection, agent interactions remain available for the directory and Meso exercises.
-- Normal building and agent selection is fully available after tutorial completion or confirmed skip.
+- Agent selection is fully available after tutorial completion or confirmed skip; building selection is already available throughout the tutorial.
 
 ## Policy Graph Behavior
 
@@ -70,11 +70,10 @@ This document records the tutorial behavior implemented in the source code. It d
 - The stage graph plots the number of agents in each of seven alcohol stages.
 - The two-day tutorial demonstration intentionally restores the pre-demo history as part of the exact snapshot. New samples continue from that restored time after playback resumes.
 
-## UI Scale Behavior
+## Interface Size Behavior
 
-- UI scale is stored per browser origin/path namespace. The local build uses keys such as `simarc-ui-scale-v5`; the `/dev/` preview uses `simarc-dev-ui-scale-v5`. A value saved in one does not affect the other.
-- In Beta.3, the slider displayed `100%` while the implementation applied a hidden `0.75` multiplier, so `100%` was actually rendered at 75%.
-- Beta.4 removes the hidden multiplier: `100%` now applies a scale of `1`.
-- The Beta.3 default stored value of `1` migrates to a true `100%`, fixing builds that appeared too small without an explicit user preference.
-- Other customized Beta.3 `ui-scale-v4` values are migrated by multiplying them by `0.75`, preserving their previous visual size while making the displayed percentage accurate.
-- A browser namespace with no saved value now starts at a true `100%`.
+- Beta.6 uses a stable 16px root font size and component-level responsive constraints instead of globally scaling the application.
+- Settings offers Compact, Default, and Large. These preferences adjust bounded text, control-height, panel-padding, gap, and radius tokens without proportionally enlarging fixed panel widths.
+- Interface size is stored per browser origin/path namespace. The local build uses `simarc-interface-size-v1`; the `/dev/` preview uses `simarc-dev-interface-size-v1`.
+- A namespace with no saved preference starts at Default.
+- Existing `ui-scale-v5` values migrate once: values below `0.9` become Compact, values above `1.1` become Large, and all other values become Default.

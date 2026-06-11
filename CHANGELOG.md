@@ -8,6 +8,21 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 - No shipped changes yet.
 
+## v0.3.0-beta.6 - 2026-06-12
+
+### Added
+
+- Added Compact, Default, and Large interface-size preferences with independent local and `/dev/` preview storage.
+- Added shared responsive typography, control, spacing, padding, and panel-radius tokens.
+- Added bounded compact-laptop, standard-desktop, and large-desktop layout foundations.
+
+### Changed
+
+- Replaced global percentage-based UI scaling with a stable 16px root font size and component-level responsive sizing.
+- Refined the stacked time controls, camera presets, mode navigation, detail/tutorial/settings/help panels, initialization controls, Agent Directory, and Macro console to preserve usable canvas space.
+- Migrated saved `ui-scale-v5` preferences to Compact, Default, or Large.
+- Removed Zoom and follow from individual detail panels and allowed building inspection throughout the tutorial.
+
 ## v0.3.0-beta.5 - 2026-06-11
 
 ### Changed

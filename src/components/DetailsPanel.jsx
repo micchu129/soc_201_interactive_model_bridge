@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value))
 
-export default function DetailsPanel({ building, agent, agents = [], buildings = [], mode = 'micro', networkCategory = 'all', occupants = [], residents = [], onClose, onSelectAgent, onSelectBuilding, onFollowAgent, onMove, anchor = { x: 50, y: 50 } }) {
+export default function DetailsPanel({ building, agent, agents = [], buildings = [], mode = 'micro', networkCategory = 'all', occupants = [], residents = [], onClose, onSelectAgent, onSelectBuilding, onMove, anchor = { x: 50, y: 50 } }) {
   const item = agent || building
   const [position, setPosition] = useState({ x: 62, y: 16 })
   const [sheet, setSheet] = useState(1)
@@ -72,7 +72,6 @@ export default function DetailsPanel({ building, agent, agents = [], buildings =
       </> : agent ? <>
         <div className="stat-grid"><span>Activity<strong>{agent.activity}</strong></span><span>Stage<strong>{agent.stage}</strong></span><span>BAC<strong>{agent.bac.toFixed(2)}</strong></span><span>Health<strong>{agent.health.toFixed(0)}</strong></span><span>Cash<strong>€{agent.cash.toFixed(0)}</strong></span><span>Location<strong>{agent.insideBuildingId ? 'Inside building' : 'Travelling'}</strong></span></div>
         <p className="kicker list-heading">Neurotransmitters</p><div className="neuro-grid">{Object.entries(agent.neurotransmitters || { dopamine: 50, serotonin: 50, gaba: 50 }).map(([name, value]) => <label key={name}><span>{name}<strong>{value}</strong></span><i><b style={{ width: `${value}%` }} /></i></label>)}</div>
-        <button className="button primary wide" onClick={() => onFollowAgent(agent.id)}>Zoom and follow</button>
       </> : <>
         <div className="stat-grid"><span>Purpose<strong>{item.purpose}</strong></span><span>Capacity<strong>{item.capacity}</strong></span><span>Occupants<strong>{occupants.length}</strong></span><span>Status<strong>Operating</strong></span></div>
         <p className="kicker list-heading">{building.type === 'home' ? 'Who lives here' : 'Current occupants'}</p><div className="occupant-list">{(building.type === 'home' ? residents : occupants).map(person => <button key={person.id} onClick={() => onSelectAgent(person.id)}><i style={{ background: person.color }} />{person.name}<span>{person.insideBuildingId === building.id ? 'Present' : 'Away'}</span></button>)}</div>
