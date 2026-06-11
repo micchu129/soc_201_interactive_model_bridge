@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="2700" viewBox="0 0 2400 2700">
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="3540" viewBox="0 0 2400 3540">
   <style>
     text { font-family: Inter, Arial, sans-serif; fill: #eaf3f8; }
     .frame { fill: #050810; stroke: #405163; stroke-width: 3; }
@@ -14,7 +14,7 @@
     .body { font-size: 22px; fill: #aebfca; }
     .small { font-size: 17px; fill: #9badb9; }
   </style>
-  <rect width="2400" height="2700" fill="#02050a"/>
+  <rect width="2400" height="3540" fill="#02050a"/>
 
   <!-- Hero -->
   <g id="Hero" transform="translate(80 80)">
@@ -27,6 +27,7 @@
     <text class="label" x="540" y="260" text-anchor="middle">ENTER THE MODEL</text>
     <text class="title" x="540" y="335" text-anchor="middle">SimARC Bridge</text>
     <text class="body" x="540" y="380" text-anchor="middle">A playable interface for translating models into policy conversations.</text>
+    <text class="small" x="540" y="420" text-anchor="middle">&#9744; Skip generation animation</text>
     <rect class="accent" x="390" y="435" width="300" height="62" rx="14"/>
     <text x="540" y="474" text-anchor="middle" font-size="22" fill="#06111b">Initialize model</text>
     <text class="small" x="540" y="535" text-anchor="middle">Advanced options</text>
@@ -60,13 +61,14 @@
     <rect class="panel" x="230" y="565" width="620" height="145" rx="20"/>
     <text class="label" x="540" y="608" text-anchor="middle">POPULATION INITIALIZATION</text>
     <text x="540" y="650" text-anchor="middle" font-size="30">Generate the population</text>
-    <rect class="accent" x="390" y="670" width="300" height="48" rx="12"/>
+    <text class="small" x="540" y="678" text-anchor="middle">&#9745; Tutorial after generation</text>
+    <rect class="accent" x="390" y="695" width="300" height="48" rx="12"/>
   </g>
 
   <!-- Micro -->
   <g id="Micro" transform="translate(1240 920)">
     <rect class="frame" width="1080" height="760" rx="28"/>
-    <text class="label" x="42" y="48">04 / MICRO · SPHERE OCCUPANCY</text>
+    <text class="label" x="42" y="48">04 / MICRO &#183; BILLBOARD-CIRCLE TOWERS</text>
     <g transform="translate(100 90)">
       <path d="M0 310 360 100 720 310 360 520Z" fill="#101a27" stroke="#365062" stroke-width="3"/>
       <g class="building"><rect x="220" y="230" width="110" height="180"/><rect x="480" y="210" width="110" height="160"/></g>
@@ -83,7 +85,7 @@
   <!-- Meso -->
   <g id="Meso" transform="translate(80 1760)">
     <rect class="frame" width="1080" height="760" rx="28"/>
-    <text class="label" x="42" y="48">05 / MESO · EXPANDABLE NETWORK HUB</text>
+    <text class="label" x="42" y="48">05 / MESO &#183; NETWORK / SOCIAL / LOCATIONS / USERS</text>
     <g transform="translate(180 100)">
       <path d="M0 250 360 40 720 250 360 460Z" fill="#101a27" stroke="#365062" stroke-width="3"/>
       <path d="M170 270 350 160 540 280M350 160 420 365M170 270 420 365M540 280 420 365" stroke="#7ed9ed" stroke-width="4" opacity=".65"/>
@@ -98,12 +100,14 @@
   <!-- Macro -->
   <g id="Macro" transform="translate(1240 1760)">
     <rect class="frame" width="1080" height="760" rx="28"/>
-    <text class="label" x="42" y="48">06 / MACRO · COMPACT OCCUPANCY + HISTORY</text>
+    <text class="label" x="42" y="48">06 / MACRO &#183; POLICY + OUTCOMES + HISTORY</text>
     <rect class="panel" x="25" y="75" width="400" height="650" rx="18"/>
     <text class="label" x="55" y="120">POLICY LAB</text>
     <text x="55" y="165" font-size="32">Apply an intervention</text>
     <g stroke="#7ed9ed" stroke-width="5"><path d="M55 230H365"/><path d="M55 310H365"/><path d="M55 390H365"/><path d="M55 470H365"/></g>
     <rect class="accent" x="55" y="530" width="310" height="55" rx="12"/>
+    <text class="small" x="55" y="620">24 hours     7 days     30 days</text>
+    <polyline points="55,690 110,660 165,675 220,635 275,650 330,610 365,625" fill="none" stroke="#7ed9ed" stroke-width="4"/>
     <g transform="translate(475 105)">
       <rect x="0" y="0" width="565" height="565" rx="16" fill="#0c1521" stroke="#405163" stroke-width="2"/>
       <g fill="#273748" stroke="#0d1722" stroke-width="3">
@@ -111,5 +115,42 @@
       </g>
       <g class="building"><rect x="115" y="115" width="80" height="80"/><rect x="330" y="115" width="80" height="80"/><rect x="115" y="330" width="80" height="80"/><rect x="330" y="330" width="80" height="80"/></g>
     </g>
+  </g>
+
+  <!-- Tutorial Demo -->
+  <g id="Tutorial_Two_Day_Demo" transform="translate(80 2600)">
+    <rect class="frame" width="1080" height="760" rx="28"/>
+    <text class="label" x="42" y="48">07 / TUTORIAL &#183; TWO-DAY DEMONSTRATION</text>
+    <g transform="translate(120 95)">
+      <path d="M0 250 330 55 660 250 330 445Z" fill="#101a27" stroke="#365062" stroke-width="3"/>
+      <g class="building"><rect x="180" y="210" width="90" height="120"/><rect x="390" y="165" width="90" height="155"/></g>
+      <g class="agent"><circle cx="425" cy="145" r="10"/><circle cx="448" cy="145" r="10"/><circle cx="425" cy="122" r="10"/><circle cx="448" cy="122" r="10"/></g>
+    </g>
+    <rect class="panel" x="450" y="305" width="565" height="350" rx="20"/>
+    <text class="label" x="485" y="350">MODEL TUTORIAL &#183; 12 / 24 &#183; MICRO</text>
+    <text x="485" y="400" font-size="34">Two days at 128&#215;</text>
+    <text class="body" x="485" y="438">Run two live days, then restore this exact snapshot.</text>
+    <rect x="485" y="470" width="490" height="90" rx="14" fill="#f3cc5510" stroke="#f3cc5570"/>
+    <text x="510" y="505" fill="#e9d893" font-size="20">Two-day demonstration running</text>
+    <text class="small" x="510" y="535">1 day 18 hours remaining. Restoration starts automatically.</text>
+    <text class="body" x="510" y="605">Press 128&#215; and watch the restoration.</text>
+  </g>
+
+  <!-- Restore and Settings -->
+  <g id="Restore_And_Settings" transform="translate(1240 2600)">
+    <rect class="frame" width="1080" height="760" rx="28"/>
+    <text class="label" x="42" y="48">08 / RESTORE + SETTINGS &#183; BETA.4</text>
+    <rect x="20" y="75" width="500" height="650" rx="18" fill="#050810dd" stroke="#405163" stroke-width="2"/>
+    <text x="270" y="340" text-anchor="middle" font-size="24" letter-spacing="4">RESTORING SNAPSHOT</text>
+    <text x="270" y="475" text-anchor="middle" font-size="120" fill="#f3cc55">3</text>
+    <text class="small" x="270" y="525" text-anchor="middle">3 &#8594; 2 &#8594; 1 &#8594; 0, then exact paused snapshot</text>
+    <rect class="panel" x="555" y="75" width="490" height="650" rx="18"/>
+    <text x="590" y="125" font-size="32">Model settings</text>
+    <rect x="590" y="155" width="420" height="100" rx="14" fill="#ffffff08" stroke="#405163"/>
+    <text class="body" x="615" y="195">UI scale</text><text x="930" y="195" font-size="20">100%</text>
+    <path d="M615 225H980" stroke="#7ed9ed" stroke-width="6"/><circle cx="798" cy="225" r="11" class="accent"/>
+    <g fill="#ffffff08" stroke="#405163"><rect x="590" y="285" width="420" height="60" rx="12"/><rect x="590" y="365" width="420" height="60" rx="12"/><rect x="590" y="445" width="420" height="60" rx="12"/><rect x="590" y="525" width="420" height="60" rx="12"/></g>
+    <text class="body" x="615" y="323">Start guided tutorial</text><text class="body" x="615" y="403">Restart simulation</text><text class="body" x="615" y="483">Regenerate population</text><text x="615" y="563" fill="#ff9eaa" font-size="22">Reset everything</text>
+    <text class="small" x="590" y="635">Bridge v0.3.0-beta.4 &#183; true 100% UI scale</text>
   </g>
 </svg>

@@ -1,16 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
-  <rect width="390" height="844" fill="#050810"/>
-  <rect x="12" y="54" width="366" height="62" rx="16" fill="#111a28" stroke="#405163"/>
-  <text x="26" y="80" fill="#edf5fa" font-family="Arial" font-size="20">Day 001</text>
-  <text x="26" y="102" fill="#9fb2bf" font-family="Arial" font-size="12">Saturday · Week 1 · Daylight</text>
-  <rect x="12" y="126" width="366" height="54" rx="16" fill="#111a28" stroke="#405163"/>
-  <text x="24" y="159" fill="#edf5fa" font-family="Arial" font-size="17">06:00  ❚❚  1×  16×  64×  128×</text>
-  <g fill="#d9e1e6" stroke="#7ed9ed"><rect x="70" y="245" width="72" height="72"/><rect x="165" y="245" width="72" height="72"/><rect x="260" y="245" width="72" height="72"/></g>
-  <g fill="#e7ca70"><circle cx="100" cy="232" r="7"/><circle cx="116" cy="232" r="7"/><circle cx="100" cy="216" r="7"/><circle cx="116" cy="216" r="7"/></g>
-  <rect x="10" y="500" width="370" height="280" rx="24" fill="#111a28" stroke="#405163"/>
-  <rect x="155" y="511" width="80" height="5" rx="3" fill="#8396a4"/>
-  <text x="28" y="550" fill="#7ed9ed" font-family="Arial" font-size="12">✥ SELECTED AGENT</text>
-  <text x="28" y="582" fill="#edf5fa" font-family="Arial" font-size="23">Snapping bottom sheet</text>
-  <rect x="52" y="790" width="286" height="44" rx="22" fill="#07101b" stroke="#405163"/>
-  <text x="82" y="818" fill="#edf5fa" font-family="Arial" font-size="15">MICRO     MESO     MACRO</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="844" viewBox="0 0 820 844">
+  <style>
+    text { font-family: Inter, Arial, sans-serif; fill: #edf5fa; }
+    .frame { fill: #050810; stroke: #405163; stroke-width: 2; }
+    .panel { fill: #111a28; stroke: #405163; }
+    .muted { fill: #9fb2bf; }
+    .accent { fill: #7ed9ed; }
+    .label { fill: #7ed9ed; font-size: 11px; letter-spacing: 2px; }
+    .body { fill: #b8c7d0; font-size: 12px; }
+  </style>
+  <rect width="820" height="844" fill="#02050a"/>
+
+  <g id="Mobile_Tutorial" transform="translate(0 0)">
+    <rect class="frame" width="390" height="844"/>
+    <text class="label" x="12" y="24">MOBILE / TUTORIAL BOTTOM SHEET</text>
+    <text x="12" y="48" font-size="14">SIMARC / MODEL BRIDGE</text><text x="360" y="48" font-size="18">&#9881;</text>
+    <rect class="panel" x="12" y="60" width="366" height="58" rx="16"/>
+    <text x="26" y="86" font-size="18">Day 001</text><text class="body" x="120" y="86">Saturday &#183; Day Time &#183; Week 1</text>
+    <rect class="panel" x="12" y="126" width="366" height="52" rx="16"/>
+    <text x="24" y="159" font-size="17">06:00  &#10074;&#10074;  &#9654;  4&#215;  16&#215;  64&#215;  128&#215;</text>
+    <g fill="#d9e1e6" stroke="#7ed9ed"><rect x="65" y="245" width="72" height="72"/><rect x="160" y="245" width="72" height="72"/><rect x="255" y="245" width="72" height="72"/></g>
+    <g fill="#e7ca70"><circle cx="96" cy="232" r="7"/><circle cx="112" cy="232" r="7"/><circle cx="96" cy="216" r="7"/><circle cx="112" cy="216" r="7"/></g>
+    <rect class="panel" x="10" y="470" width="370" height="310" rx="24"/>
+    <rect x="155" y="481" width="80" height="5" rx="3" fill="#8396a4"/>
+    <text class="label" x="28" y="520">&#10021; MODEL TUTORIAL &#183; 12 / 24 &#183; MICRO</text>
+    <text x="28" y="555" font-size="23">Two days at 128&#215;</text>
+    <text class="body" x="28" y="580">Run two live days, then restore this exact snapshot.</text>
+    <rect x="28" y="602" width="334" height="66" rx="12" fill="#f3cc5510" stroke="#f3cc5570"/>
+    <text x="42" y="628" fill="#e9d893" font-size="13">Two-day demonstration running</text>
+    <text class="body" x="42" y="650">1 day 18 hours remaining.</text>
+    <text class="body" x="42" y="705">Press 128&#215; and watch the restoration.</text>
+    <text class="muted" x="282" y="748" font-size="11">Skip tutorial</text>
+    <rect class="panel" x="52" y="790" width="286" height="44" rx="22"/>
+    <rect class="accent" x="60" y="797" width="83" height="30" rx="15"/><text x="77" y="818" fill="#07111b" font-size="13">MICRO</text><text x="169" y="818" font-size="13">MESO</text><text x="258" y="818" font-size="13">MACRO</text>
+  </g>
+
+  <g id="Mobile_Restore" transform="translate(430 0)">
+    <rect class="frame" width="390" height="844"/>
+    <text class="label" x="12" y="24">MOBILE / RESTORATION OVERLAY</text>
+    <path d="M60 370 195 290 330 370 195 450Z" fill="#101a27" stroke="#365062" stroke-width="2"/>
+    <rect width="390" height="844" fill="#050810dd"/>
+    <text x="195" y="375" text-anchor="middle" font-size="18" letter-spacing="3">RESTORING SNAPSHOT</text>
+    <text x="195" y="490" text-anchor="middle" fill="#f3cc55" font-size="105">3</text>
+    <text class="body" x="195" y="535" text-anchor="middle">Countdown continues 3 &#8594; 2 &#8594; 1 &#8594; 0</text>
+    <text class="body" x="195" y="558" text-anchor="middle">then restores the exact paused snapshot.</text>
+  </g>
 </svg>
