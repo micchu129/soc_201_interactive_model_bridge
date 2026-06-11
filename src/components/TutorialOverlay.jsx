@@ -1,6 +1,13 @@
 import { useRef, useState } from 'react'
 
-export default function TutorialOverlay({ step, stepNumber, totalSteps, ready, rewinding, onMove, onNext, onSkip }) {
+const durationLabel = minutes => {
+  const hours = Math.ceil(minutes / 60)
+  const days = Math.floor(hours / 24)
+  const remainingHours = hours % 24
+  return [days && `${days} day${days === 1 ? '' : 's'}`, remainingHours && `${remainingHours} hour${remainingHours === 1 ? '' : 's'}`].filter(Boolean).join(' ') || 'less than 1 hour'
+}
+
+export default function TutorialOverlay({ step, stepNumber, totalSteps, ready, rewinding, demoMinutesRemaining, onMove, onNext, onSkip }) {
   const [position, setPosition] = useState({ x: 50, y: 72 })
   const [sheet, setSheet] = useState(1)
   const [confirmSkip, setConfirmSkip] = useState(false)
@@ -25,7 +32,7 @@ export default function TutorialOverlay({ step, stepNumber, totalSteps, ready, r
   }
   return <section className={`tutorial-overlay panel sheet-${sheet}`} style={{ left: `${position.x}%`, top: `${position.y}%` }}>
     <div className="tutorial-drag drag-handle" onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}><span className="move-grip">✥</span><p className="kicker">Model tutorial · {stepNumber} / {totalSteps} · {step.mode}</p></div>
-    <h2>{rewinding ? 'Restoring the saved moment...' : step.title}</h2><p>{step.body}</p><p className={`tutorial-action ${ready ? 'ready' : ''}`}>{step.action}</p>
+    <h2>{rewinding ? 'Restoring the saved moment...' : step.title}</h2><p>{step.body}</p>{demoMinutesRemaining != null && !rewinding && <p className="tutorial-demo-status"><strong>Two-day demonstration running</strong><span>{durationLabel(demoMinutesRemaining)} remaining. Restoration starts automatically at the saved target.</span></p>}<p className={`tutorial-action ${ready ? 'ready' : ''}`}>{step.action}</p>
     <div className="tutorial-footer">{!step.auto && <button className="button primary" disabled={!ready} onClick={onNext}>{stepNumber === totalSteps ? 'Finish tutorial' : 'Next'}</button>}{confirmSkip ? <span className="skip-confirm"><button onClick={() => setConfirmSkip(false)}>Cancel</button><button onClick={onSkip}>Confirm skip</button></span> : <button className="tutorial-skip" onClick={() => setConfirmSkip(true)}>Skip tutorial</button>}</div>
   </section>
 }

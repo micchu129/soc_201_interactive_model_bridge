@@ -21,7 +21,6 @@ const storageKey = key => `simarc-${IS_DEV_PREVIEW ? 'dev-' : ''}${key}`
 const STORAGE_KEY = storageKey('bridge-v4')
 const STORAGE_VERSION = 6
 const INITIAL_SIM_MINUTES = 360
-const UI_SCALE_BASELINE = .75
 const FIXED_SIM_STEP = .25
 const MAX_SIM_STEPS_PER_FRAME = 32
 const HISTORY_LIMIT = 30 * 12
@@ -65,15 +64,17 @@ export default function ModelBridge() {
   const [tutorialActions, setTutorialActions] = useState(() => savedTutorial?.actions || {})
   const [dismissedCaptions, setDismissedCaptions] = useState(() => JSON.parse(localStorage.getItem(storageKey('dismissed-captions')) || '{}'))
   const [uiScale, setUiScale] = useState(() => {
-    const current = Number(localStorage.getItem(storageKey('ui-scale-v4')))
+    const current = Number(localStorage.getItem(storageKey('ui-scale-v5')))
     if (current) return current
-    const legacy = Number(localStorage.getItem(storageKey('ui-scale-v3')))
-    return legacy ? legacy / UI_SCALE_BASELINE : 1
+    const beta3 = Number(localStorage.getItem(storageKey('ui-scale-v4')))
+    if (beta3) return beta3 === 1 ? 1 : beta3 * .75
+    return Number(localStorage.getItem(storageKey('ui-scale-v3'))) || 1
   })
   const [clockFormat, setClockFormat] = useState(() => localStorage.getItem(storageKey('clock-format')) || '24h')
   const [skipGenerationAnimation, setSkipGenerationAnimation] = useState(false)
   const [networkCategory, setNetworkCategory] = useState('all')
   const [restorePhase, setRestorePhase] = useState(null)
+  const [demoTargetMinutes, setDemoTargetMinutes] = useState(() => savedTutorial?.demoTarget || null)
   const [cameraResetKey, setCameraResetKey] = useState(0)
   const [cameraPreset, setCameraPreset] = useState(null)
   const [generationProgress, setGenerationProgress] = useState(() => state.worldStage >= 4 ? 1 : 0)
@@ -82,7 +83,7 @@ export default function ModelBridge() {
   const lastDecisionBoundary = useRef(Math.floor(state.simMinutes / 120))
   const simMinutesRef = useRef(state.simMinutes)
   const tutorialSnapshot = useRef(savedTutorial?.snapshot || null)
-  const demoTarget = useRef(savedTutorial?.demoTarget || null)
+  const restorationStarted = useRef(false)
   const skipGenerationRef = useRef(false)
 
   const tutorial = tutorialStep == null ? null : tutorialSteps[tutorialStep]
@@ -99,13 +100,13 @@ export default function ModelBridge() {
     return () => window.clearTimeout(id)
   }, [state])
   useEffect(() => {
-    localStorage.setItem(storageKey('ui-scale-v4'), String(uiScale))
-    document.documentElement.style.setProperty('--ui-scale', uiScale * UI_SCALE_BASELINE)
+    localStorage.setItem(storageKey('ui-scale-v5'), String(uiScale))
+    document.documentElement.style.setProperty('--ui-scale', uiScale)
   }, [uiScale])
   useEffect(() => { localStorage.setItem(storageKey('clock-format'), clockFormat) }, [clockFormat])
   useEffect(() => {
-    localStorage.setItem(storageKey('tutorial-session-v1'), JSON.stringify({ step: tutorialStep, actions: tutorialActions, snapshot: tutorialSnapshot.current, demoTarget: demoTarget.current, selectedAgent, selectedBuilding }))
-  }, [tutorialStep, tutorialActions, selectedAgent, selectedBuilding])
+    localStorage.setItem(storageKey('tutorial-session-v1'), JSON.stringify({ step: tutorialStep, actions: tutorialActions, snapshot: tutorialSnapshot.current, demoTarget: demoTargetMinutes, selectedAgent, selectedBuilding }))
+  }, [tutorialStep, tutorialActions, demoTargetMinutes, selectedAgent, selectedBuilding])
   useEffect(() => { simMinutesRef.current = state.simMinutes }, [state.simMinutes])
   useEffect(() => {
     let frame
@@ -145,11 +146,13 @@ export default function ModelBridge() {
     }, 850)
     return () => window.clearTimeout(id)
   }, [tutorial, tutorialActions, tutorialStep])
+  const speedDemoRunning = Boolean(tutorialActions['speed-demo-running'])
   useEffect(() => {
-    if (!tutorialActions['speed-demo-running'] || !demoTarget.current || !tutorialSnapshot.current) return
-    if (simMinutesRef.current < demoTarget.current) return
+    if (!speedDemoRunning || !demoTargetMinutes || !tutorialSnapshot.current) return
+    if (state.simMinutes < demoTargetMinutes || restorationStarted.current) return
+    restorationStarted.current = true
     setState(current => ({ ...current, speed: 0 }))
-    setTutorialActions(current => ({ ...current, 'speed-demo-running': false, 'rewind-running': true }))
+    setTutorialActions(current => ({ ...current, 'rewind-running': true }))
     setRestorePhase(3)
     let frame = 3
     const rewind = window.setInterval(() => {
@@ -157,14 +160,18 @@ export default function ModelBridge() {
       setRestorePhase(frame)
       if (frame <= 0) {
         window.clearInterval(rewind)
+        simulationAccumulator.current = 0
+        lastDecisionBoundary.current = Math.floor(tutorialSnapshot.current.simMinutes / 120)
+        simMinutesRef.current = tutorialSnapshot.current.simMinutes
         setState({ ...tutorialSnapshot.current, speed: 0 })
-        demoTarget.current = null
+        setDemoTargetMinutes(null)
         setRestorePhase(null)
-        setTutorialActions(current => ({ ...current, 'speed-demo': true, 'rewind-running': false }))
+        restorationStarted.current = false
+        setTutorialActions(current => ({ ...current, 'speed-demo': true, 'speed-demo-running': false, 'rewind-running': false }))
       }
     }, 500)
     return () => window.clearInterval(rewind)
-  }, [tutorialActions])
+  }, [state.simMinutes, speedDemoRunning, demoTargetMinutes])
 
   const generateWorld = async () => {
     closePanels()
@@ -191,6 +198,8 @@ export default function ModelBridge() {
     await wait(900)
     setState(current => ({ ...current, agents: createPopulation(current.populationOptions, current.world), populationStage: 2 }))
     await wait(1500)
+    simulationAccumulator.current = 0
+    lastDecisionBoundary.current = Math.floor(INITIAL_SIM_MINUTES / 120)
     setState(current => {
       const populated = decisionTick({ ...current, mode: 'micro', speed: tutorialEnabled ? 0 : 1, simMinutes: INITIAL_SIM_MINUTES, calendar: calendarFromMinutes(INITIAL_SIM_MINUTES), history: [] })
       return { ...populated, history: [historySampleFromState(populated, INITIAL_SIM_MINUTES)] }
@@ -204,12 +213,13 @@ export default function ModelBridge() {
   }
   const resetEverything = () => {
     Object.keys(localStorage).filter(key => key.startsWith('simarc-')).forEach(key => localStorage.removeItem(key))
-    tutorialSnapshot.current = null; demoTarget.current = null; skipGenerationRef.current = false
+    tutorialSnapshot.current = null; setDemoTargetMinutes(null); skipGenerationRef.current = false
     simulationAccumulator.current = 0; lastDecisionBoundary.current = Math.floor(INITIAL_SIM_MINUTES / 120)
     closePanels(); clearSelection(); setTutorialStep(null); setTutorialActions({}); setDismissedCaptions({}); setUiScale(1); setSkipGenerationAnimation(false); setNetworkCategory('all'); setRestorePhase(null); setGenerationProgress(0); setCameraPreset(null); setFindTarget(null); setCameraResetKey(key => key + 1); setState({ ...initialState, history: [historySampleFromState(initialState, INITIAL_SIM_MINUTES)] })
   }
   const restartSimulation = () => {
     closePanels(); setCameraResetKey(key => key + 1)
+    simulationAccumulator.current = 0; lastDecisionBoundary.current = Math.floor(INITIAL_SIM_MINUTES / 120)
     setState(current => {
       const restarted = decisionTick({ ...current, agents: createPopulation(current.populationOptions, current.world), simMinutes: INITIAL_SIM_MINUTES, calendar: calendarFromMinutes(INITIAL_SIM_MINUTES), history: [], speed: 1, mode: 'micro' })
       return { ...restarted, history: [historySampleFromState(restarted, INITIAL_SIM_MINUTES)] }
@@ -219,7 +229,7 @@ export default function ModelBridge() {
   const setSpeed = speed => {
     if (speed === 128 && tutorial?.requirement === 'speed-demo' && !tutorialActions['speed-demo-running']) {
       tutorialSnapshot.current = structuredClone({ ...state, speed: 0 })
-      demoTarget.current = state.simMinutes + 2880
+      setDemoTargetMinutes(state.simMinutes + 2880)
       setCameraPreset(null); setCameraResetKey(key => key + 1)
       setTutorialActions(current => ({ ...current, 'speed-demo-running': true }))
     }
@@ -236,7 +246,7 @@ export default function ModelBridge() {
   }
   const selectBuilding = building => {
     if (!building) { clearSelection(); return }
-    if (tutorial && !tutorialActions['unlock-building'] && tutorial.requirement !== 'building') return
+    if (tutorial && !['building', 'meso-building'].includes(tutorial.requirement)) return
     setPanel(null); setFollowedAgent(null); setSelectedAgent(null); setSelectedBuilding(building); setHighlightedBuilding(building.id)
     noteTutorialAction(state.mode === 'meso' ? 'meso-building' : 'building'); noteTutorialAction('unlock-building')
   }
@@ -258,6 +268,7 @@ export default function ModelBridge() {
       : tutorial?.highlight === 'workplaces' ? tutorialNetwork.map(agent => agent.workplaceId).filter(Boolean)
         : tutorial?.highlight === 'gatherings' ? tutorialNetwork.map(agent => agent.favoriteVenueId).filter(Boolean) : []
   const tutorialReady = !tutorial?.requirement || Boolean(tutorialActions[tutorial.requirement])
+  const demoMinutesRemaining = speedDemoRunning && demoTargetMinutes ? Math.max(0, demoTargetMinutes - state.simMinutes) : null
   const activeMode = ['micro', 'meso', 'macro'].includes(state.mode) ? state.mode : 'overview'
   const occupants = selectedBuilding ? state.agents.filter(agent => agent.insideBuildingId === selectedBuilding.id) : []
   const residents = selectedBuilding?.type === 'home' ? state.agents.filter(agent => agent.home.id === selectedBuilding.id) : []
@@ -294,10 +305,10 @@ export default function ModelBridge() {
     {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <div className="time-control-stack"><section className="date-strip panel"><strong>Day {String(displayCalendar.dayNumber).padStart(3, '0')}</strong><div className="date-metadata"><span>{displayCalendar.day}</span><i>·</i><span>{displayCalendar.period}</span><i>·</i><span>Week {displayCalendar.week}</span></div></section><footer className="sim-controls panel"><button className="clock-display" title={`Switch to ${clockFormat === '24h' ? '12-hour' : '24-hour'} time`} onClick={() => setClockFormat(current => current === '24h' ? '12h' : '24h')}>{displayTime}</button><SlidingToggleGroup className="speed-controls" buttonClassName="speed-toggle-button" ariaLabel="Simulation speed" items={speedControlItems} value={state.speed} onChange={setSpeed} /></footer><button className="directory-button panel" onClick={() => { closePanels(); setPanel('directory'); noteTutorialAction('directory') }}>☷ Agent Directory</button></div>}
     {state.worldStage > 0 && state.mode !== 'hero' && <button className="help-button panel" onClick={() => { closePanels(); setPanel('camera-help'); noteTutorialAction('help') }}>?</button>}
 
-    {panel === 'settings' && <aside className="panel settings-menu"><div className="section-heading"><h2>Model settings</h2><button className="icon-button" onClick={closePanels}>×</button></div><label className="scale-control"><span>UI scale <strong>{Math.round(uiScale * 100)}%</strong></span><input type="range" min=".75" max="1.5" step=".05" value={uiScale} onChange={event => setUiScale(Number(event.target.value))} /></label>{state.agents.length > 0 && <button onClick={() => { closePanels(); setState(current => ({ ...current, speed: 0 })); setTutorialActions({}); setTutorialStep(0); changeMode('micro') }}>Start guided tutorial</button>}<button onClick={restartSimulation}>Restart simulation</button><button onClick={() => { closePanels(); setState(current => ({ ...current, agents: [], populationStage: 0, mode: 'population', speed: 0 })) }}>Regenerate population</button><button className="danger" onClick={resetEverything}>Reset everything</button><details className="about-details"><summary>About this beta</summary><p><strong>Bridge v0.3.0-beta.3</strong><br />SimARC 2.2 · NetLogo 7.0.3</p><p>Creative interface-friendly decisions simplify, omit, and add behavior relative to the source model. Outputs remain illustrative and are not validated policy predictions.</p></details></aside>}
+    {panel === 'settings' && <aside className="panel settings-menu"><div className="section-heading"><h2>Model settings</h2><button className="icon-button" onClick={closePanels}>×</button></div><label className="scale-control"><span>UI scale <strong>{Math.round(uiScale * 100)}%</strong></span><input type="range" min=".75" max="1.5" step=".05" value={uiScale} onChange={event => setUiScale(Number(event.target.value))} /></label>{state.agents.length > 0 && <button onClick={() => { closePanels(); setState(current => ({ ...current, speed: 0 })); setTutorialActions({}); setTutorialStep(0); changeMode('micro') }}>Start guided tutorial</button>}<button onClick={restartSimulation}>Restart simulation</button><button onClick={() => { closePanels(); setState(current => ({ ...current, agents: [], populationStage: 0, mode: 'population', speed: 0 })) }}>Regenerate population</button><button className="danger" onClick={resetEverything}>Reset everything</button><details className="about-details"><summary>About this beta</summary><p><strong>Bridge v0.3.0-beta.4</strong><br />SimARC 2.2 · NetLogo 7.0.3</p><p>Creative interface-friendly decisions simplify, omit, and add behavior relative to the source model. Outputs remain illustrative and are not validated policy predictions.</p></details></aside>}
     {panel === 'camera-help' && <aside className="panel camera-help"><div className="section-heading"><h2>Camera controls</h2><button className="icon-button" onClick={closePanels}>×</button></div><p><strong>Left drag</strong> orbit</p><p><strong>Right drag</strong> pan</p><p><strong>Scroll</strong> zoom</p><p><strong>W A S D</strong> move within the city bounds</p><p>Manual movement activates the <strong>Custom</strong> view.</p><p><strong>Micro</strong> follows individual lives. <strong>Meso</strong> reveals networks. <strong>Macro</strong> opens the policy lab.</p><button className="button secondary wide" onClick={() => { setDismissedCaptions({}); localStorage.removeItem(storageKey('dismissed-captions')); closePanels() }}>Restore mode tips</button></aside>}
     {panel === 'directory' && <AgentDirectory agents={state.agents} onClose={closePanels} onFind={findAgent} onFollow={followAgent} onHighlight={id => { setHighlightedBuilding(null); setHighlightedAgent(current => current === id ? null : id) }} onDetails={selectAgent} />}
-    {tutorial && <TutorialOverlay step={tutorial} stepNumber={tutorialStep + 1} totalSteps={tutorialSteps.length} ready={tutorialReady} rewinding={tutorialActions['rewind-running']} onMove={() => noteTutorialAction('move-panel')} onNext={nextTutorial} onSkip={finishTutorial} />}
+    {tutorial && <TutorialOverlay step={tutorial} stepNumber={tutorialStep + 1} totalSteps={tutorialSteps.length} ready={tutorialReady} rewinding={tutorialActions['rewind-running']} demoMinutesRemaining={demoMinutesRemaining} onMove={() => noteTutorialAction('move-panel')} onNext={nextTutorial} onSkip={finishTutorial} />}
     {restorePhase != null && <div className="restore-overlay"><strong>Restoring snapshot</strong><span>{restorePhase}</span></div>}
     {panel?.startsWith('warning-') && <AdvancedWarning onBack={closePanels} onProceed={proceedAdvanced} />}
     {panel?.startsWith('advanced-') && <AdvancedOptions type={panel.replace('advanced-', '')} values={panel.endsWith('world') ? state.worldOptions : state.populationOptions} onChange={values => setState(current => ({ ...current, [panel.endsWith('world') ? 'worldOptions' : 'populationOptions']: values }))} onClose={closePanels} />}
