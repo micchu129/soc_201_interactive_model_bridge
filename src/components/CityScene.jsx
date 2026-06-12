@@ -17,7 +17,7 @@ const cameraTargets = {
   macro: { position: [0, 18, .001], target: [0, 0, 0], up: [0, 0, -1] },
   street: { position: [0, 1.15, 11.5], target: [0, .55, 0], up: [0, 1, 0] },
   district: { position: [10, 9, 11], target: [0, 0, 0], up: [0, 1, 0] },
-  top: { position: [0, 18, .001], target: [0, 0, 0], up: [0, 0, -1] },
+  top: { position: [0, 18, .001], target: [0, 0, 0], up: [0, 1, 0] },
 }
 
 function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, cameraResetKey, onCustomView, onCameraPractice, cameraSnapshot, onCameraSnapshot }) {
@@ -54,10 +54,10 @@ function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, came
     if (!cameraSnapshot || !controls.current) return
     camera.position.fromArray(cameraSnapshot.position)
     camera.quaternion.fromArray(cameraSnapshot.quaternion)
-    camera.up.fromArray(cameraSnapshot.up)
+    camera.up.fromArray(mode === 'macro' ? cameraSnapshot.up : [0, 1, 0])
     controls.current.target.fromArray(cameraSnapshot.target)
     controls.current.update()
-  }, [cameraSnapshot, camera])
+  }, [cameraSnapshot, camera, mode])
   useFrame((_, delta) => {
     const selected = agents.find(agent => agent.id === followedAgent)
     if (selected != null && mode === 'micro') {

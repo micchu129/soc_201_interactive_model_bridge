@@ -6,6 +6,11 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ## Unreleased
 
+### Fixed
+
+- Kept the interactive Top camera preset on the normal Y-up world axis so users can orbit back toward the horizon without flipping the city upside down.
+- Normalized older saved non-Macro camera snapshots to prevent previously inverted views from returning.
+
 ## v0.3.0-beta.8 - 2026-06-13
 
 ### Added
