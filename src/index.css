@@ -90,7 +90,7 @@ button { cursor: pointer; }
 .caption-close { position: absolute; right: .7rem; top: .7rem; border: 0; background: transparent; color: #a9bbc6; font-size: 1rem; }
 .icon-button { display: grid; place-items: center; min-width: 2.5rem; height: 2.5rem; border: 1px solid #405366; border-radius: 50%; background: #0d1824dd; color: #dceaf1; }
 .details-panel { position: fixed; z-index: 15; width: min(27rem, calc(100vw - 3rem)); max-height: calc(100vh - 5rem); overflow: auto; padding: var(--panel-padding); transform: translate(-50%, 0); }
-.details-panel.directory-docked-details { left: 1rem; top: 9.3rem; width: clamp(25rem, 31vw, 29rem); max-width: calc(100vw - 8rem); max-height: calc(100vh - 13.5rem); transform: none; }
+.details-panel.directory-docked-details { left: 1rem; top: 11.9rem; width: clamp(25rem, 31vw, 29rem); max-width: calc(100vw - 8rem); max-height: calc(100vh - 16.1rem); transform: none; }
 .details-panel.directory-docked-details .drag-handle { cursor: default; }
 .details-panel.directory-docked-details .move-grip { display: none; }
 .drag-handle { cursor: move; user-select: none; }
@@ -244,7 +244,7 @@ button { cursor: pointer; }
   .camera-presets b { font-size: 1.15rem; }
   .mode-nav { bottom: .65rem; }
   .details-panel { width: min(25rem, calc(100vw - 5rem)); max-height: calc(100vh - 4.5rem); }
-  .details-panel.directory-docked-details { left: .7rem; top: 9rem; width: 23rem; max-width: calc(100vw - 6.5rem); max-height: calc(100vh - 13rem); }
+  .details-panel.directory-docked-details { left: .7rem; top: 11.5rem; width: 23rem; max-width: calc(100vw - 6.5rem); max-height: calc(100vh - 15.5rem); }
   .tutorial-overlay { width: min(34rem, calc(100vw - 5rem)); }
   .settings-menu, .camera-help { right: .7rem; top: 3.5rem; }
   .directory-panel { left: .7rem; top: 9rem; width: 23rem; max-width: calc(100vw - 6.5rem); max-height: calc(100vh - 13rem); }
