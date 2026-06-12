@@ -6,6 +6,8 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ## Unreleased
 
+## v0.3.0-beta.7 - 2026-06-12
+
 ### Added
 
 - Expanded the guided tutorial to 32 progressive Micro, Meso, and Macro steps.

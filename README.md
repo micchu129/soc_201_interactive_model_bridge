@@ -4,7 +4,7 @@ SimARC Model Bridge is an interactive browser-based explanation of selected conc
 
 The Bridge is designed to support exploration and discussion. It is **not** a numerically equivalent port of SimARC, a validated policy-prediction tool, or a replacement for the original NetLogo model.
 
-Current release: **v0.3.0-beta.6**
+Current release: **v0.3.0-beta.7**
 
 - Production: <https://micchu129.github.io/soc_201_interactive_model_bridge/>
 - Development preview: <https://micchu129.github.io/soc_201_interactive_model_bridge/dev/>
