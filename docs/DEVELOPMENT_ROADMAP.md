@@ -36,7 +36,7 @@ changes should not be mixed with broad interface refactors unless required.
 
 - `v0.3.0-beta.6` responsive UI foundations are released.
 - `v0.3.0-beta.7` tutorial and explanation refinement is released.
-- `v0.3.0-beta.8` Agent Directory redesign is in progress.
+- `v0.3.0-beta.8` Agent Directory redesign is released.
 - Beta.7 expanded the guided sequence to 32 steps and aligned its wording with
   the executable Beta.6 interface.
 
@@ -109,7 +109,7 @@ Acceptance criteria:
 
 ### v0.3.0-beta.8: Agent Directory Redesign
 
-**Status:** In progress.
+**Status:** Released.
 
 **Goal:** Turn the current action-heavy list into a readable population browser
 for inspecting and locating agents.
@@ -341,7 +341,7 @@ scoped and tested.
 | `v0.3.0-beta.5` | Perspective-aware agent sprites | Implemented |
 | `v0.3.0-beta.6` | Responsive UI foundations | Released |
 | `v0.3.0-beta.7` | Tutorial and explanation refinement | Released |
-| `v0.3.0-beta.8` | Agent Directory redesign | In progress |
+| `v0.3.0-beta.8` | Agent Directory redesign | Released |
 | `v0.3.0-beta.9` | Policy Lab refinement | Planned |
 | `v0.3.0` | Stable exploratory Model Bridge | Planned |
 | `v0.4.x` | Seeds, import/export, experiment plans, comparison | Planned |

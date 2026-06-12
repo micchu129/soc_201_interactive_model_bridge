@@ -6,6 +6,8 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ## Unreleased
 
+## v0.3.0-beta.8 - 2026-06-13
+
 ### Added
 
 - Added Agent Directory sorting, stage filtering, visible-result counts, and an empty-results state.
