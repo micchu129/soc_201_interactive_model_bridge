@@ -1,6 +1,6 @@
-# Tutorial Implementation Reference: v0.3.0-beta.7
+# Tutorial Implementation Reference: v0.3.0-beta.8
 
-Beta.7 implements a 32-step guided walkthrough across Micro, Meso, and Macro.
+Beta.8 maintains the 32-step guided walkthrough across Micro, Meso, and Macro.
 It frames SimARC Bridge as an exploratory policy-conversation interface, not a
 prediction or forecasting tool.
 
@@ -32,8 +32,8 @@ prediction or forecasting tool.
 | 8 | `select-agent` | Select an agent | Select an agent |
 | 9 | `agent-details` | Read and close agent details | Close the agent panel |
 | 10 | `directory-open` | Open the Agent Directory | Open Agent Directory |
-| 11 | `directory-select` | Select an agent from the Agent Directory | Select Details for an agent |
-| 12 | `directory-close` | Close the Agent Directory | Close Agent Directory |
+| 11 | `directory-select` | Open an agent from the Agent Directory | Select an agent name or Details |
+| 12 | `directory-details-close` | Close the agent details | Close the visible agent detail panel |
 | 13 | `play` | Play the simulation | Simulation loop remains running for 300ms |
 | 14 | `pause` | Pause the simulation | Pause verified playback |
 | 15 | `speed-demo` | Run two simulated days at 128x | Complete exact snapshot restoration |
@@ -72,8 +72,8 @@ defined in `src/config/tutorialSteps.js`.
   here`, `Current occupants`, `Present`, and `Away`.
 - Agent Details: `Activity`, `Stage`, `BAC`, `Health`, `Cash`, `Location`, and
   `Neurotransmitters`.
-- Agent Directory: `Search agents…`, `Find`, `Follow`, `Highlight`, and
-  `Details`.
+- Agent Directory: `Search agents…`, `Sort by`, `Stage`, `Details`, `Locate`,
+  and `Follow`.
 - Views: `Default`, `Street`, `Top`, and disabled `Custom`.
 - Settings: `Interface size`, `Compact`, `Default`, `Large`, `Start guided
   tutorial`, `Restart simulation`, `Regenerate population`, `Reset everything`,
@@ -94,3 +94,7 @@ defined in `src/config/tutorialSteps.js`.
   explicit **Mark reviewed** actions.
 - Beta.4 used a fast numeric restoration countdown. Beta.7 uses three readable,
   explanatory restoration phases.
+- Beta.7 attempted to keep the Agent Directory open after selecting Details,
+  which prevented the detail panel from rendering. Beta.8 closes the directory
+  when a name or Details is selected, then asks the user to close the visible
+  detail panel.

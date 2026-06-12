@@ -119,7 +119,7 @@ Planned work:
 - Make agent details the primary action.
 - Improve row readability and information hierarchy.
 - Add useful sorting and filtering where justified.
-- Group secondary actions such as Find, Follow, and Highlight.
+- Group distinct secondary actions such as Locate and Follow.
 - Ensure the directory fits supported resolutions without excessive crowding.
 - Maintain compatibility with Micro/Meso selection and tutorial behavior.
 

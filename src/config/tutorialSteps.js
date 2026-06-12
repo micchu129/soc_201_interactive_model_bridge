@@ -9,8 +9,8 @@ export const tutorialSteps = [
   { id: 'select-agent', mode: 'micro', title: 'Select an agent', body: 'Agents represent synthetic people moving through the model. They are not real people, but they let you inspect how individual-level states connect to location, behavior, and aggregate outcomes.', instruction: 'Select a person on the street or a colored billboard circle in an occupancy tower.', requirement: 'agent', action: 'Select an agent.' },
   { id: 'agent-details', mode: 'micro', title: 'Read and close agent details', body: 'Read Activity, Stage, BAC, Health, Cash, Location, and Neurotransmitters before closing the panel. Stage represents a simplified alcohol stage. These are synthetic model states, not real records or clinical measurements.', requirement: 'close-agent', action: 'Close the agent details panel.' },
   { id: 'directory-open', mode: 'micro', title: 'Open the Agent Directory', body: 'The Agent Directory helps you find agents without hunting through the city. Use it when the map is crowded or when you want to inspect a specific generated person.', requirement: 'directory-open', action: 'Open the Agent Directory.' },
-  { id: 'directory-select', mode: 'micro', title: 'Select an agent from the Agent Directory', body: 'Use Search agents… and the Find, Follow, Highlight, and Details controls to connect the list view to the world view.', requirement: 'directory-select', action: 'Select Details for an agent in the Agent Directory.' },
-  { id: 'directory-close', mode: 'micro', title: 'Close the Agent Directory', body: 'Close the directory before continuing. This keeps the screen clear for playback and the demonstration.', requirement: 'directory-close', action: 'Close the Agent Directory.' },
+  { id: 'directory-select', mode: 'micro', title: 'Open an agent from the Agent Directory', body: 'Select an agent name or Details to open their profile. Locate moves the camera to an agent while keeping the directory open. Follow tracks an agent in Micro.', requirement: 'directory-select', action: 'Select an agent name or Details.' },
+  { id: 'directory-details-close', mode: 'micro', title: 'Close the agent details', body: 'The directory closes when you open an agent profile so the details remain readable. Close the agent details before continuing.', requirement: 'close-agent', action: 'Close the agent details panel.' },
   { id: 'play', mode: 'micro', title: 'Play the simulation', body: 'Now start the model. Playback moves the presentation forward continuously, while major model decisions happen at two-hour boundaries.', requirement: 'play-running', action: 'Press Play.' },
   { id: 'pause', mode: 'micro', title: 'Pause the simulation', body: 'Pause when you want to inspect a stable moment. This is the safest way to read panels, compare states, or think through what changed.', requirement: 'pause', action: 'Press Pause.' },
   { id: 'speed-demo', mode: 'micro', title: 'Run two simulated days at 128×', body: 'Now run a short live demonstration. The city will move through two simulated days at 128× so you can see daily rhythms, movement, and outcome changes.', disclaimer: 'This demonstration is temporary. SimARC Bridge will save your current state, run the two-day demonstration, then restore the exact saved snapshot.', requirement: 'speed-demo', action: 'Start the two-day 128× demonstration.' },
@@ -36,6 +36,7 @@ export const tutorialSteps = [
 const tutorialStepAliases = {
   'pan-zoom-move': 'pan-move',
   'settings-review': 'settings-size',
+  'directory-close': 'directory-details-close',
 }
 
 export const tutorialStepIndex = id => tutorialSteps.findIndex(step => step.id === (tutorialStepAliases[id] || id))

@@ -24,7 +24,7 @@ The simulation combines continuous visual movement with model decisions at two-h
 - Navigable Three.js city with roads, buildings, agents, continuous movement, and day/night lighting.
 - Generated population with seven alcohol stages and approximately 100 visible agents by default.
 - Selectable agent and building detail panels with billboard-circle occupancy towers.
-- Agent Directory with find, follow, highlight, and detail actions.
+- Agent Directory with searchable and filterable agent cards, selectable names, and Details, Locate, and Follow actions.
 - Micro, Meso, and Macro views with camera presets and relationship highlighting.
 - Four policy controls: alcohol price, venue regulation, treatment access, and prevention.
 - Rolling outcomes and history views for 24 hours, 7 days, and 30 days.
@@ -87,12 +87,12 @@ The current renderer uses generated Three.js fallback geometry and does not requ
 ## Documentation
 
 - [Changelog](CHANGELOG.md): tagged release history from the initial alpha through the current beta.
-- [Tutorial Implementation Reference](docs/TUTORIAL_IMPLEMENTATION_BETA7.md): exact 32-step sequence, displayed text, required actions, locks, migration notes, and restoration behavior.
+- [Tutorial Implementation Reference](docs/TUTORIAL_IMPLEMENTATION_BETA8.md): exact 32-step sequence, displayed text, required actions, locks, migration notes, and restoration behavior.
 - [Creative Alterations](docs/CREATIVE_ALTERATIONS.md): explicit differences between the Bridge and original SimARC.
 - [NetLogo Implementation Status](docs/NETLOGO_IMPLEMENTATION_STATUS.md): implemented, simplified, deferred, and planned behavior.
 - [Parameter Reference](docs/PARAMETER_REFERENCE.md): exposed world, population, and policy parameters.
 - [Asset Customization](docs/ASSET_CUSTOMIZATION.md): asset locations and extension guidance.
-- [Wireframes](docs/wireframes/README.md): editable structural UI references through Beta.7.
+- [Wireframes](docs/wireframes/README.md): editable structural UI references through Beta.8.
 
 ## Deployment And Branches
 

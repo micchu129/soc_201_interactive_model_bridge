@@ -6,6 +6,16 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ## Unreleased
 
+### Added
+
+- Added Agent Directory sorting, stage filtering, visible-result counts, and an empty-results state.
+
+### Changed
+
+- Redesigned Agent Directory rows around readable agent cards, selectable names, primary Details actions, and larger controls.
+- Replaced separate Find and Highlight actions with Locate, which selects, highlights, and moves the camera while keeping the directory open.
+- Updated the tutorial to open agent details from the directory and then close the visible detail panel.
+
 ## v0.3.0-beta.7 - 2026-06-12
 
 ### Added
