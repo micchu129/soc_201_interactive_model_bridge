@@ -73,7 +73,8 @@ defined in `src/config/tutorialSteps.js`.
 - Agent Details: `Activity`, `Stage`, `BAC`, `Health`, `Cash`, `Location`, and
   `Neurotransmitters`.
 - Agent Directory: `Search agents…`, `Sort by`, `Stage`, `Details`, `Locate`,
-  and `Follow`.
+  and `Follow`. Details opens the profile; Locate and Follow close the directory
+  so their world-view results remain visible.
 - Views: `Default`, `Street`, `Top`, and disabled `Custom`.
 - Settings: `Interface size`, `Compact`, `Default`, `Large`, `Start guided
   tutorial`, `Restart simulation`, `Regenerate population`, `Reset everything`,

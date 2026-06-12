@@ -13,8 +13,10 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 ### Changed
 
 - Redesigned Agent Directory rows around readable agent cards, selectable names, primary Details actions, and larger controls.
-- Replaced separate Find and Highlight actions with Locate, which selects, highlights, and moves the camera while keeping the directory open.
+- Replaced separate Find and Highlight actions with Locate, which selects, highlights, closes the directory, and moves the camera so the result remains visible.
 - Updated the tutorial to open agent details from the directory and then close the visible detail panel.
+- Aligned the date/time leading cells and separators, positioned the Agent Directory below the playback controls, and tightened its panel and card spacing.
+- Tightened mobile date metadata and speed controls so Week and 128x remain visible.
 
 ## v0.3.0-beta.7 - 2026-06-12
 
