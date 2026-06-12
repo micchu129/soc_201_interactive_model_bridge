@@ -22,7 +22,7 @@
     <g fill="#e7ca70"><circle cx="96" cy="232" r="7"/><circle cx="112" cy="232" r="7"/><circle cx="96" cy="216" r="7"/><circle cx="112" cy="216" r="7"/></g>
     <rect class="panel" x="10" y="470" width="370" height="310" rx="24"/>
     <rect x="155" y="481" width="80" height="5" rx="3" fill="#8396a4"/>
-    <text class="label" x="28" y="520">&#10021; MODEL TUTORIAL &#183; 12 / 24 &#183; MICRO</text>
+    <text class="label" x="28" y="520">&#10021; MODEL TUTORIAL &#183; 15 / 32 &#183; MICRO</text>
     <text x="28" y="555" font-size="23">Two days at 128&#215;</text>
     <text class="body" x="28" y="580">Run two live days, then restore this exact snapshot.</text>
     <rect x="28" y="602" width="334" height="66" rx="12" fill="#f3cc5510" stroke="#f3cc5570"/>
@@ -39,9 +39,8 @@
     <text class="label" x="12" y="24">MOBILE / RESTORATION OVERLAY</text>
     <path d="M60 370 195 290 330 370 195 450Z" fill="#101a27" stroke="#365062" stroke-width="2"/>
     <rect width="390" height="844" fill="#050810dd"/>
-    <text x="195" y="375" text-anchor="middle" font-size="18" letter-spacing="3">RESTORING SNAPSHOT</text>
-    <text x="195" y="490" text-anchor="middle" fill="#f3cc55" font-size="105">3</text>
-    <text class="body" x="195" y="535" text-anchor="middle">Countdown continues 3 &#8594; 2 &#8594; 1 &#8594; 0</text>
-    <text class="body" x="195" y="558" text-anchor="middle">then restores the exact paused snapshot.</text>
+    <text x="195" y="375" text-anchor="middle" font-size="18" letter-spacing="2">RESTORING YOUR SAVED SNAPSHOT...</text>
+    <text class="body" x="195" y="430" text-anchor="middle">Rewinding the temporary demonstration...</text>
+    <text class="body" x="195" y="458" text-anchor="middle">You will continue from the same saved state.</text>
   </g>
 </svg>

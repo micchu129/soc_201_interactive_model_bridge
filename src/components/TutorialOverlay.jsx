@@ -1,13 +1,8 @@
 import { useRef, useState } from 'react'
 
-const durationLabel = minutes => {
-  const hours = Math.ceil(minutes / 60)
-  const days = Math.floor(hours / 24)
-  const remainingHours = hours % 24
-  return [days && `${days} day${days === 1 ? '' : 's'}`, remainingHours && `${remainingHours} hour${remainingHours === 1 ? '' : 's'}`].filter(Boolean).join(' ') || 'less than 1 hour'
-}
+const durationLabel = minutes => `${Math.max(0, Math.ceil(minutes / 60))} simulated hours remaining`
 
-export default function TutorialOverlay({ step, stepNumber, totalSteps, ready, rewinding, demoMinutesRemaining, onMove, onNext, onSkip }) {
+export default function TutorialOverlay({ step, stepNumber, totalSteps, ready, autoAdvance, countdown, progress, rewinding, demoMinutesRemaining, onAutoAdvance, onCompleteAction, onMove, onPrevious, onNext, onSkip }) {
   const [position, setPosition] = useState({ x: 50, y: 72 })
   const [sheet, setSheet] = useState(1)
   const [confirmSkip, setConfirmSkip] = useState(false)
@@ -30,9 +25,21 @@ export default function TutorialOverlay({ step, stepNumber, totalSteps, ready, r
     setPosition({ x: Math.max(22, Math.min(78, drag.current.origin.x + (event.clientX - drag.current.x) / window.innerWidth * 100)), y: Math.max(8, Math.min(78, drag.current.origin.y + (event.clientY - drag.current.y) / window.innerHeight * 100)) })
     onMove?.()
   }
+  const demoProgress = demoMinutesRemaining == null ? null : (2880 - demoMinutesRemaining) / 2880
   return <section className={`tutorial-overlay panel sheet-${sheet}`} style={{ left: `${position.x}%`, top: `${position.y}%` }}>
     <div className="tutorial-drag drag-handle" onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}><span className="move-grip">✥</span><p className="kicker">Model tutorial · {stepNumber} / {totalSteps} · {step.mode}</p></div>
-    <h2>{rewinding ? 'Restoring the saved moment...' : step.title}</h2><p>{step.body}</p>{demoMinutesRemaining != null && !rewinding && <p className="tutorial-demo-status"><strong>Two-day demonstration running</strong><span>{durationLabel(demoMinutesRemaining)} remaining. Restoration starts automatically at the saved target.</span></p>}<p className={`tutorial-action ${ready ? 'ready' : ''}`}>{step.action}</p>
-    <div className="tutorial-footer">{!step.auto && <button className="button primary" disabled={!ready} onClick={onNext}>{stepNumber === totalSteps ? 'Finish tutorial' : 'Next'}</button>}{confirmSkip ? <span className="skip-confirm"><button onClick={() => setConfirmSkip(false)}>Cancel</button><button onClick={onSkip}>Confirm skip</button></span> : <button className="tutorial-skip" onClick={() => setConfirmSkip(true)}>Skip tutorial</button>}</div>
+    <h2>{rewinding ? 'Restoring your saved snapshot…' : step.title}</h2>
+    <p>{step.body}</p>
+    {step.instruction && <p className="tutorial-instruction">{step.instruction}</p>}
+    {step.disclaimer && <p className="tutorial-disclaimer">{step.disclaimer}</p>}
+    {step.progress === 'orbit' && <div className="tutorial-practice"><span>Orbit practice</span><div className="progress"><span style={{ width: `${progress * 100}%` }} /></div></div>}
+    {demoMinutesRemaining != null && !rewinding && <div className="tutorial-demo-status"><strong>Demonstration running: watch how agents, locations, and outcomes change over simulated time.</strong><span>Day {demoProgress < .5 ? 1 : 2} of 2 · {durationLabel(demoMinutesRemaining)}</span><div className="progress"><span style={{ width: `${demoProgress * 100}%` }} /></div></div>}
+    <p className={`tutorial-action ${ready ? 'ready' : ''}`}><b>{ready ? '✓' : '→'}</b><span>{step.action}</span>{countdown != null && <small>Continuing in {countdown}…</small>}</p>
+    {step.manualComplete && !ready && <button className="button secondary tutorial-complete-button" onClick={() => onCompleteAction(step.requirement)}>Mark reviewed</button>}
+    {!step.final && <label className="check-row tutorial-auto"><input type="checkbox" checked={autoAdvance} onChange={event => onAutoAdvance(event.target.checked)} /> Auto-advance completed actions</label>}
+    <div className="tutorial-footer">
+      <span className="tutorial-navigation"><button className="button secondary" disabled={stepNumber === 1} onClick={onPrevious}>Previous</button><button className="button primary" disabled={!ready} onClick={onNext}>{step.final ? 'Finish tutorial' : 'Next'}</button></span>
+      {!step.final && (confirmSkip ? <span className="skip-confirm"><button onClick={() => setConfirmSkip(false)}>Cancel</button><button onClick={onSkip}>Confirm skip</button></span> : <button className="tutorial-skip" onClick={() => setConfirmSkip(true)}>Skip tutorial</button>)}
+    </div>
   </section>
 }

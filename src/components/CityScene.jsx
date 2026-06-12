@@ -20,11 +20,13 @@ const cameraTargets = {
   top: { position: [0, 18, .001], target: [0, 0, 0], up: [0, 0, -1] },
 }
 
-function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, cameraResetKey, onCustomView }) {
+function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, cameraResetKey, onCustomView, onCameraPractice, cameraSnapshot, onCameraSnapshot }) {
   const { camera } = useThree()
   const controls = useRef()
   const transition = useRef(null)
   const keys = useRef(new Set())
+  const practice = useRef(null)
+  const practiceSample = useRef(null)
   useEffect(() => {
     const down = event => keys.current.add(event.key.toLowerCase())
     const up = event => keys.current.delete(event.key.toLowerCase())
@@ -48,6 +50,14 @@ function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, came
     }
     controls.current?.target.copy(target)
   }, [mode, cameraPreset, findTarget, cameraResetKey, camera])
+  useEffect(() => {
+    if (!cameraSnapshot || !controls.current) return
+    camera.position.fromArray(cameraSnapshot.position)
+    camera.quaternion.fromArray(cameraSnapshot.quaternion)
+    camera.up.fromArray(cameraSnapshot.up)
+    controls.current.target.fromArray(cameraSnapshot.target)
+    controls.current.update()
+  }, [cameraSnapshot, camera])
   useFrame((_, delta) => {
     const selected = agents.find(agent => agent.id === followedAgent)
     if (selected != null && mode === 'micro') {
@@ -77,6 +87,7 @@ function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, came
         controls.current?.target.setX(THREE.MathUtils.clamp(controls.current.target.x, -7, 7))
         controls.current?.target.setZ(THREE.MathUtils.clamp(controls.current.target.z, -7, 7))
         onCustomView?.()
+        onCameraPractice?.({ type: 'move', amount: movement.length() })
       }
     }
   })
@@ -92,8 +103,33 @@ function CameraRig({ mode, cameraPreset, followedAgent, findTarget, agents, came
       THREE.MathUtils.clamp(camera.position.y, 2, 20),
       THREE.MathUtils.clamp(camera.position.z, -16, 16),
     )
+    if (!practice.current || !practiceSample.current) return
+    const sample = practiceSample.current
+    const targetDistance = controls.current.target.distanceTo(sample.target)
+    const startDirection = sample.position.clone().sub(sample.target).normalize()
+    const endDirection = camera.position.clone().sub(controls.current.target).normalize()
+    const orbitAngle = startDirection.angleTo(endDirection)
+    const zoomDistance = Math.abs(camera.position.distanceTo(controls.current.target) - sample.position.distanceTo(sample.target))
+    const type = zoomDistance > .025 ? 'zoom' : targetDistance > .025 ? 'pan-move' : 'orbit'
+    const amount = type === 'zoom' ? zoomDistance : type === 'pan-move' ? targetDistance : orbitAngle
+    if (amount > .002) {
+      onCameraPractice?.({ type, amount })
+      practiceSample.current = { position: camera.position.clone(), target: controls.current.target.clone() }
+    }
   }
-  return <OrbitControls ref={controls} makeDefault enabled={followedAgent == null && mode !== 'macro'} minPolarAngle={.25} maxPolarAngle={Math.PI / 2.08} minDistance={7} maxDistance={25} target={[0, 0, 0]} onStart={() => { transition.current = null; onCustomView?.() }} onChange={constrainControls} />
+  const startPractice = () => {
+    transition.current = null
+    practice.current = { position: camera.position.clone(), target: controls.current?.target.clone() }
+    practiceSample.current = practice.current
+    onCustomView?.()
+  }
+  const endPractice = () => {
+    if (!practice.current || !controls.current) return
+    onCameraSnapshot?.({ position: camera.position.toArray(), quaternion: camera.quaternion.toArray(), up: camera.up.toArray(), target: controls.current.target.toArray() })
+    practice.current = null
+    practiceSample.current = null
+  }
+  return <OrbitControls ref={controls} makeDefault enabled={followedAgent == null && mode !== 'macro'} minPolarAngle={.25} maxPolarAngle={Math.PI / 2.08} minDistance={7} maxDistance={25} target={[0, 0, 0]} onStart={startPractice} onEnd={endPractice} onChange={constrainControls} />
 }
 
 function Road({ road, generationProgress }) {
@@ -268,7 +304,7 @@ function SelectionAnchor({ selectedAgent, selectedBuilding, agents, onAnchorChan
   return null
 }
 
-export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, highlightedAgents = [], highlightedBuildings = [], findTarget, simMinutes, onCustomView, onSelectAgent, onSelectBuilding, onAnchorChange, onNetworkCategory, cameraResetKey }) {
+export default function CityScene({ world, generationProgress, agents, populationStage, mode, cameraPreset, selectedAgent, selectedBuilding, followedAgent, highlightedAgent, highlightedBuilding, highlightedAgents = [], highlightedBuildings = [], findTarget, simMinutes, onCustomView, onCameraPractice, cameraSnapshot, onCameraSnapshot, onSelectAgent, onSelectBuilding, onAnchorChange, onNetworkCategory, cameraResetKey }) {
   const [expandedTower, setExpandedTower] = useState(null)
   const displayFor = agent => {
     const building = agent.insideBuildingId ? world?.buildings.find(place => place.id === agent.insideBuildingId) : null
@@ -306,7 +342,7 @@ export default function CityScene({ world, generationProgress, agents, populatio
       </group>
     })}
     <NetworkOverlay key={`${mode}-${selectedAgent ?? selectedBuilding?.id ?? 'none'}`} mode={mode} selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} buildings={world?.buildings || []} onCategoryChange={onNetworkCategory} />
-    <CameraRig mode={mode} cameraPreset={cameraPreset} followedAgent={followedAgent} findTarget={findTarget} agents={agents} cameraResetKey={cameraResetKey} onCustomView={onCustomView} />
+    <CameraRig mode={mode} cameraPreset={cameraPreset} followedAgent={followedAgent} findTarget={findTarget} agents={agents} cameraResetKey={cameraResetKey} onCustomView={onCustomView} onCameraPractice={onCameraPractice} cameraSnapshot={cameraSnapshot} onCameraSnapshot={onCameraSnapshot} />
     <SelectionAnchor selectedAgent={selectedAgent} selectedBuilding={selectedBuilding} agents={agents} onAnchorChange={onAnchorChange} />
   </Canvas>
 }

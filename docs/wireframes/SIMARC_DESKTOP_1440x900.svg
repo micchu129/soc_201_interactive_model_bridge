@@ -16,7 +16,7 @@
 
   <g id="Desktop_Micro_Tutorial">
     <rect class="frame" x="0" y="0" width="1440" height="900"/>
-    <text class="label" x="20" y="28">DESKTOP / MICRO / TUTORIAL STEP 12 OF 24</text>
+    <text class="label" x="20" y="28">DESKTOP / MICRO / TUTORIAL STEP 15 OF 32</text>
     <text x="20" y="54" font-size="18">SIMARC / MODEL BRIDGE</text>
     <rect class="gold" x="235" y="37" width="48" height="22" rx="11"/><text x="246" y="53" fill="#231b05" font-size="10">BETA</text>
     <text x="1385" y="54" font-size="24">&#9881;</text>
@@ -53,7 +53,7 @@
 
     <g id="Tutorial_Two_Day_Status">
       <rect class="panel" x="455" y="570" width="530" height="245" rx="20"/>
-      <text class="label" x="482" y="605">&#10021; MODEL TUTORIAL &#183; 12 / 24 &#183; MICRO</text>
+      <text class="label" x="482" y="605">&#10021; MODEL TUTORIAL &#183; 15 / 32 &#183; MICRO</text>
       <text class="title" x="482" y="647">Two days at 128&#215;</text>
       <text class="body" x="482" y="676">Press 128&#215; to run two live days from the Default camera.</text>
       <rect x="482" y="698" width="475" height="58" rx="12" fill="#f3cc5510" stroke="#f3cc5570"/>
@@ -100,11 +100,11 @@
       <rect class="panel" x="1100" y="80" width="315" height="530" rx="18"/>
       <text class="title" x="1125" y="120">Model settings</text><text x="1380" y="120" font-size="20">&#215;</text>
       <rect class="soft" x="1125" y="145" width="265" height="75" rx="12"/>
-      <text class="body" x="1142" y="174">UI scale</text><text x="1338" y="174" font-size="15">100%</text>
+      <text class="body" x="1142" y="174">Interface size</text><text x="1315" y="174" font-size="15">Default</text>
       <path d="M1142 200H1370" stroke="#7ed9ed" stroke-width="5"/><circle cx="1256" cy="200" r="9" class="accent"/>
       <g class="soft"><rect x="1125" y="235" width="265" height="44" rx="10"/><rect x="1125" y="290" width="265" height="44" rx="10"/><rect x="1125" y="345" width="265" height="44" rx="10"/><rect x="1125" y="400" width="265" height="44" rx="10"/></g>
       <text class="body" x="1142" y="263">Start guided tutorial</text><text class="body" x="1142" y="318">Restart simulation</text><text class="body" x="1142" y="373">Regenerate population</text><text x="1142" y="428" fill="#ff9eaa" font-size="15">Reset everything</text>
-      <text class="body" x="1125" y="480">About this beta</text><text class="small" x="1125" y="510">Bridge v0.3.0-beta.4</text><text class="small" x="1125" y="532">SimARC 2.2 &#183; NetLogo 7.0.3</text>
+      <text class="body" x="1125" y="480">About this beta</text><text class="small" x="1125" y="510">Bridge v0.3.0-beta.7</text><text class="small" x="1125" y="532">SimARC 2.2 &#183; NetLogo 7.0.3</text>
     </g>
 
     <rect class="panel" x="515" y="836" width="410" height="48" rx="24"/>

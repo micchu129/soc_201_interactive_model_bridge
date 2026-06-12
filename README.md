@@ -4,7 +4,7 @@ SimARC Model Bridge is an interactive browser-based explanation of selected conc
 
 The Bridge is designed to support exploration and discussion. It is **not** a numerically equivalent port of SimARC, a validated policy-prediction tool, or a replacement for the original NetLogo model.
 
-Current release: **v0.3.0-beta.4**
+Current release: **v0.3.0-beta.6**
 
 - Production: <https://micchu129.github.io/soc_201_interactive_model_bridge/>
 - Development preview: <https://micchu129.github.io/soc_201_interactive_model_bridge/dev/>
@@ -30,7 +30,7 @@ The simulation combines continuous visual movement with model decisions at two-h
 - Rolling outcomes and history views for 24 hours, 7 days, and 30 days.
 - Responsive desktop and mobile layouts with draggable panels and mobile bottom sheets.
 - Persistent browser state, clock format, tutorial progress, and Compact/Default/Large interface-size preference.
-- A 24-step action-driven tutorial, including a two-day accelerated demonstration that restores an exact saved snapshot.
+- A 32-step guided walkthrough with verified actions, explicit review completion, manual navigation, and a temporary two-day accelerated demonstration that restores an exact saved snapshot.
 
 ## Model Scope And Limitations
 
@@ -87,12 +87,12 @@ The current renderer uses generated Three.js fallback geometry and does not requ
 ## Documentation
 
 - [Changelog](CHANGELOG.md): tagged release history from the initial alpha through the current beta.
-- [Tutorial Implementation Reference](docs/TUTORIAL_IMPLEMENTATION_BETA4.md): exact 24-step sequence, displayed text, required actions, locks, and restoration behavior.
+- [Tutorial Implementation Reference](docs/TUTORIAL_IMPLEMENTATION_BETA7.md): exact 32-step sequence, displayed text, required actions, locks, migration notes, and restoration behavior.
 - [Creative Alterations](docs/CREATIVE_ALTERATIONS.md): explicit differences between the Bridge and original SimARC.
 - [NetLogo Implementation Status](docs/NETLOGO_IMPLEMENTATION_STATUS.md): implemented, simplified, deferred, and planned behavior.
 - [Parameter Reference](docs/PARAMETER_REFERENCE.md): exposed world, population, and policy parameters.
 - [Asset Customization](docs/ASSET_CUSTOMIZATION.md): asset locations and extension guidance.
-- [Wireframes](docs/wireframes/README.md): editable Beta.4 structural UI references.
+- [Wireframes](docs/wireframes/README.md): editable structural UI references through Beta.7.
 
 ## Deployment And Branches
 

@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="2860" viewBox="0 0 2200 2860">
+  <style>
+    text { font-family: Inter, Arial, sans-serif; fill: #edf5fa; }
+    .page { fill: #02050a; }
+    .frame { fill: #050810; stroke: #405163; stroke-width: 2; }
+    .panel { fill: #111a28; stroke: #52687a; stroke-width: 2; }
+    .soft { fill: #ffffff0b; stroke: #405163; stroke-width: 1.5; }
+    .canvas { fill: #09121d; stroke: #365062; stroke-width: 2; }
+    .accent { fill: #7ed9ed; }
+    .gold { fill: #f3cc55; }
+    .muted { fill: #9fb2bf; }
+    .danger { fill: #ff9eaa; }
+    .label { fill: #7ed9ed; font-size: 16px; font-weight: 700; letter-spacing: 3px; }
+    .section { font-size: 30px; font-weight: 600; }
+    .title { font-size: 24px; }
+    .body { fill: #b8c7d0; font-size: 14px; }
+    .small { fill: #9fb2bf; font-size: 11px; }
+    .note { fill: #e9d893; font-size: 13px; }
+    .guide { fill: none; stroke: #f3cc55; stroke-width: 2; stroke-dasharray: 7 6; }
+    .rule { stroke: #405163; stroke-width: 2; }
+  </style>
+  <rect class="page" width="2200" height="2860"/>
+
+  <text class="label" x="70" y="65">SIMARC / RESPONSIVE SIZING CALIBRATION / V0.3.0-BETA.6</text>
+  <text class="section" x="70" y="110">Approve spatial balance before implementation</text>
+  <text class="body" x="70" y="145">Yellow dashed regions are reserved canvas or collision-clearance areas. Frames are drawn at 50% scale.</text>
+  <text class="note" x="70" y="175">Proposed rule: interface-size preferences change typography, control height, padding, and gaps; panel widths remain viewport-responsive and bounded.</text>
+
+  <!-- 1024 x 768 Micro / Tutorial -->
+  <g id="Compact_Laptop_Micro_Tutorial" transform="translate(70 235)">
+    <text class="label" x="0" y="-20">1024 X 768 / MICRO + TUTORIAL / DEFAULT</text>
+    <g transform="scale(.5)">
+      <rect class="frame" width="1024" height="768" rx="16"/>
+      <text x="18" y="30" font-size="13">SIMARC / MODEL BRIDGE</text>
+      <circle class="panel" cx="990" cy="25" r="17"/><text x="984" y="31" font-size="15">&#9881;</text>
+
+      <g id="Laptop_Time_Stack">
+        <rect class="panel" x="14" y="48" width="410" height="48" rx="12"/>
+        <text x="28" y="78" font-size="18">Day 001</text><path class="rule" d="M118 58V86"/>
+        <text class="body" x="134" y="78">Saturday  &#183;  Day Time  &#183;  Week 1</text>
+        <rect class="panel" x="14" y="104" width="410" height="46" rx="12"/>
+        <text x="28" y="133" font-size="18">06:00</text><path class="rule" d="M118 114V140"/>
+        <text class="body" x="135" y="133">&#10074;&#10074;  &#9654;  4&#215;  16&#215;  64&#215;  128&#215;</text>
+        <rect class="panel" x="14" y="158" width="152" height="38" rx="10"/>
+        <text class="body" x="29" y="182">&#9783; Agent Directory</text>
+      </g>
+
+      <rect class="guide" x="180" y="205" width="660" height="405" rx="24"/>
+      <text class="note" x="392" y="235">PRIMARY CITY CANVAS CLEARANCE</text>
+      <path class="canvas" d="M265 420 510 275 755 420 510 565Z"/>
+      <g fill="#d9e1e6"><rect x="370" y="385" width="54" height="64"/><rect x="505" y="330" width="58" height="80"/><rect x="620" y="410" width="54" height="60"/></g>
+
+      <g id="Laptop_Camera_Presets">
+        <rect class="panel" x="938" y="218" width="70" height="292" rx="14"/>
+        <text class="small" x="973" y="243" text-anchor="middle">VIEWS</text>
+        <g class="body" text-anchor="middle"><text x="973" y="292">&#9671;</text><text x="973" y="310">Default</text><text x="973" y="360">&#9645;</text><text x="973" y="378">Street</text><text x="973" y="428">&#9638;</text><text x="973" y="446">Top</text><text x="973" y="496">&#10021;</text></g>
+      </g>
+
+      <g id="Laptop_Tutorial">
+        <rect class="panel" x="262" y="506" width="500" height="190" rx="16"/>
+        <text class="label" x="284" y="535" font-size="11">MODEL TUTORIAL &#183; 15 / 32 &#183; MICRO</text>
+        <text class="title" x="284" y="570">Two days at 128&#215;</text>
+        <text class="body" x="284" y="598">Press 128&#215; to run two live days from the Default camera.</text>
+        <rect class="soft" x="284" y="616" width="456" height="42" rx="8"/>
+        <text class="small" x="298" y="641">Two-day demonstration running &#183; 1 day 18 hours remaining</text>
+        <text class="small" x="676" y="681">Skip tutorial</text>
+      </g>
+
+      <rect class="panel" x="362" y="712" width="300" height="40" rx="20"/><rect class="accent" x="368" y="718" width="92" height="28" rx="14"/>
+      <text class="body" x="393" y="738" fill="#07111b">MICRO</text><text class="body" x="487" y="738">MESO</text><text class="body" x="577" y="738">MACRO</text>
+      <circle class="panel" cx="990" cy="730" r="18"/><text x="986" y="736" font-size="14">?</text>
+    </g>
+  </g>
+
+  <!-- 1440 x 900 Micro / Tutorial -->
+  <g id="Standard_Desktop_Micro_Tutorial" transform="translate(640 235)">
+    <text class="label" x="0" y="-20">1440 X 900 / MICRO + TUTORIAL / DEFAULT</text>
+    <g transform="scale(.5)">
+      <rect class="frame" width="1440" height="900" rx="16"/>
+      <text x="20" y="34" font-size="14">SIMARC / MODEL BRIDGE</text><circle class="panel" cx="1405" cy="28" r="18"/>
+      <rect class="panel" x="16" y="58" width="470" height="54" rx="13"/><text x="32" y="91" font-size="20">Day 001</text><path class="rule" d="M135 68V102"/><text class="body" x="154" y="91">Saturday &#183; Day Time &#183; Week 1</text>
+      <rect class="panel" x="16" y="120" width="470" height="52" rx="13"/><text x="32" y="153" font-size="20">06:00</text><path class="rule" d="M135 130V162"/><text class="body" x="154" y="153">&#10074;&#10074;  &#9654;  4&#215;  16&#215;  64&#215;  128&#215;</text>
+      <rect class="panel" x="16" y="180" width="165" height="40" rx="10"/><text class="body" x="31" y="205">&#9783; Agent Directory</text>
+      <rect class="guide" x="260" y="190" width="900" height="550" rx="28"/><text class="note" x="584" y="220">PRIMARY CITY CANVAS CLEARANCE</text>
+      <path class="canvas" d="M410 485 715 305 1020 485 715 665Z"/><g fill="#d9e1e6"><rect x="565" y="440" width="65" height="80"/><rect x="715" y="375" width="72" height="100"/><rect x="875" y="455" width="65" height="75"/></g>
+      <rect class="panel" x="1340" y="260" width="80" height="350" rx="16"/><text class="small" x="1380" y="288" text-anchor="middle">VIEWS</text><g class="body" text-anchor="middle"><text x="1380" y="350">Default</text><text x="1380" y="425">Street</text><text x="1380" y="500">Top</text><text x="1380" y="575">Custom</text></g>
+      <rect class="panel" x="455" y="600" width="530" height="210" rx="18"/><text class="label" x="480" y="632" font-size="11">MODEL TUTORIAL &#183; 15 / 32 &#183; MICRO</text><text class="title" x="480" y="670">Two days at 128&#215;</text><text class="body" x="480" y="698">Controls stay readable without dominating the city canvas.</text><rect class="soft" x="480" y="716" width="480" height="45" rx="9"/><text class="small" x="496" y="744">Two-day demonstration running</text>
+      <rect class="panel" x="540" y="838" width="360" height="44" rx="22"/><rect class="accent" x="547" y="845" width="110" height="30" rx="15"/><text class="body" x="575" y="866" fill="#07111b">MICRO</text><text class="body" x="693" y="866">MESO</text><text class="body" x="808" y="866">MACRO</text>
+    </g>
+  </g>
+
+  <!-- 1920 x 1080 Micro / Tutorial -->
+  <g id="Large_Desktop_Micro_Tutorial" transform="translate(70 735)">
+    <text class="label" x="0" y="-20">1920 X 1080 / MICRO + TUTORIAL / DEFAULT</text>
+    <g transform="scale(.5)">
+      <rect class="frame" width="1920" height="1080" rx="16"/><text x="22" y="38" font-size="15">SIMARC / MODEL BRIDGE</text><circle class="panel" cx="1880" cy="30" r="19"/>
+      <rect class="panel" x="18" y="64" width="500" height="58" rx="14"/><text x="36" y="100" font-size="21">Day 001</text><path class="rule" d="M145 75V112"/><text class="body" x="166" y="100">Saturday &#183; Day Time &#183; Week 1</text>
+      <rect class="panel" x="18" y="132" width="500" height="56" rx="14"/><text x="36" y="167" font-size="21">06:00</text><path class="rule" d="M145 143V178"/><text class="body" x="166" y="167">&#10074;&#10074;  &#9654;  4&#215;  16&#215;  64&#215;  128&#215;</text><rect class="panel" x="18" y="198" width="175" height="42" rx="11"/><text class="body" x="34" y="224">&#9783; Agent Directory</text>
+      <rect class="guide" x="330" y="210" width="1260" height="680" rx="32"/><text class="note" x="807" y="242">PRIMARY CITY CANVAS CLEARANCE</text>
+      <path class="canvas" d="M560 575 960 335 1360 575 960 815Z"/><g fill="#d9e1e6"><rect x="760" y="520" width="82" height="100"/><rect x="950" y="430" width="92" height="130"/><rect x="1160" y="540" width="82" height="95"/></g>
+      <rect class="panel" x="1810" y="325" width="88" height="390" rx="18"/><g class="body" text-anchor="middle"><text x="1854" y="365">VIEWS</text><text x="1854" y="435">Default</text><text x="1854" y="520">Street</text><text x="1854" y="605">Top</text><text x="1854" y="690">Custom</text></g>
+      <rect class="panel" x="650" y="735" width="620" height="230" rx="20"/><text class="label" x="680" y="770" font-size="12">MODEL TUTORIAL &#183; 15 / 32 &#183; MICRO</text><text class="title" x="680" y="812">Two days at 128&#215;</text><text class="body" x="680" y="844">Panel width is bounded; extra viewport space remains available to the canvas.</text><rect class="soft" x="680" y="866" width="560" height="48" rx="10"/><text class="small" x="698" y="895">Two-day demonstration running</text>
+      <rect class="panel" x="765" y="1018" width="390" height="46" rx="23"/><rect class="accent" x="772" y="1025" width="120" height="32" rx="16"/><text class="body" x="805" y="1047" fill="#07111b">MICRO</text><text class="body" x="930" y="1047">MESO</text><text class="body" x="1055" y="1047">MACRO</text>
+    </g>
+  </g>
+
+  <!-- Macro / Settings viewport comparisons -->
+  <text class="section" x="70" y="1345">Macro console and Settings balance</text>
+  <text class="body" x="70" y="1378">Console width is bounded and does not scale with interface-size preference. Settings remains internally scrollable.</text>
+
+  <g id="Compact_Laptop_Macro_Settings" transform="translate(70 1440)">
+    <text class="label" x="0" y="-20">1024 X 768 / MACRO + SETTINGS / DEFAULT</text>
+    <g transform="scale(.5)">
+      <rect class="frame" width="1024" height="768" rx="16"/>
+      <rect fill="#0c1521" stroke="#52687a" stroke-width="2" width="390" height="768"/>
+      <text x="18" y="30" font-size="13">SIMARC / MODEL BRIDGE</text>
+      <rect class="panel" x="14" y="48" width="362" height="45" rx="11"/><text class="body" x="28" y="76">Day 001 &#183; Saturday &#183; Week 1</text>
+      <rect class="panel" x="14" y="101" width="362" height="43" rx="11"/><text class="body" x="28" y="128">06:00  &#10074;&#10074;  &#9654;  4&#215;  16&#215;  64&#215;  128&#215;</text>
+      <text class="label" x="20" y="178" font-size="11">MACRO / POLICY LAB</text><text class="title" x="20" y="210">Apply an intervention</text>
+      <g class="body"><text x="20" y="247">Alcohol price</text><text x="20" y="295">Venue regulation</text><text x="20" y="343">Treatment access</text><text x="20" y="391">Prevention</text></g>
+      <g stroke="#7ed9ed" stroke-width="4"><path d="M20 260H370"/><path d="M20 308H370"/><path d="M20 356H370"/><path d="M20 404H370"/></g>
+      <rect class="accent" x="20" y="430" width="350" height="38" rx="9"/><text x="156" y="455" fill="#07111b" font-size="13">Apply policy</text>
+      <g class="soft"><rect x="20" y="485" width="106" height="52" rx="8"/><rect x="140" y="485" width="106" height="52" rx="8"/><rect x="260" y="485" width="106" height="52" rx="8"/></g>
+      <rect class="panel" x="20" y="575" width="346" height="120" rx="10"/>
+      <rect class="guide" x="410" y="115" width="390" height="505" rx="24"/><text class="note" x="480" y="145">CITY CANVAS RESERVED</text><path class="canvas" d="M475 390 610 310 745 390 610 470Z"/>
+      <rect class="panel" x="730" y="48" width="278" height="570" rx="14"/><text class="title" x="750" y="82">Model settings</text><circle class="soft" cx="982" cy="72" r="14"/>
+      <text class="small" x="750" y="112">INTERFACE SIZE</text><rect class="soft" x="750" y="128" width="238" height="44" rx="22"/><rect class="accent" x="829" y="134" width="78" height="32" rx="16"/><text class="small" x="766" y="156">COMPACT</text><text x="846" y="156" fill="#07111b" font-size="11">DEFAULT</text><text class="small" x="926" y="156">LARGE</text>
+      <g class="soft"><rect x="750" y="192" width="238" height="40" rx="8"/><rect x="750" y="242" width="238" height="40" rx="8"/><rect x="750" y="292" width="238" height="40" rx="8"/><rect x="750" y="342" width="238" height="40" rx="8"/></g>
+      <text class="body" x="765" y="217">Start guided tutorial</text><text class="body" x="765" y="267">Restart simulation</text><text class="body" x="765" y="317">Regenerate population</text><text class="danger" x="765" y="367" font-size="14">Reset everything</text>
+      <text class="small" x="750" y="430">About this beta</text><text class="small" x="750" y="454">Bridge v0.3.0-beta.7</text>
+    </g>
+  </g>
+
+  <g id="Standard_Desktop_Macro_Settings" transform="translate(640 1440)">
+    <text class="label" x="0" y="-20">1440 X 900 / MACRO + SETTINGS / DEFAULT</text>
+    <g transform="scale(.5)">
+      <rect class="frame" width="1440" height="900" rx="16"/><rect fill="#0c1521" stroke="#52687a" stroke-width="2" width="500" height="900"/>
+      <text x="18" y="32" font-size="14">SIMARC / MODEL BRIDGE</text><rect class="panel" x="16" y="52" width="468" height="50" rx="12"/><text class="body" x="32" y="83">Day 001 &#183; Saturday &#183; Day Time &#183; Week 1</text><rect class="panel" x="16" y="110" width="468" height="48" rx="12"/><text class="body" x="32" y="140">06:00  &#10074;&#10074;  &#9654;  4&#215;  16&#215;  64&#215;  128&#215;</text>
+      <text class="label" x="24" y="198" font-size="11">MACRO / POLICY LAB</text><text class="title" x="24" y="232">Apply an intervention</text><g stroke="#7ed9ed" stroke-width="4"><path d="M24 282H476"/><path d="M24 338H476"/><path d="M24 394H476"/><path d="M24 450H476"/></g><rect class="accent" x="24" y="478" width="452" height="42" rx="10"/><g class="soft"><rect x="24" y="545" width="138" height="60" rx="9"/><rect x="181" y="545" width="138" height="60" rx="9"/><rect x="338" y="545" width="138" height="60" rx="9"/></g><rect class="panel" x="24" y="655" width="452" height="155" rx="12"/>
+      <rect class="guide" x="540" y="145" width="550" height="610" rx="28"/><text class="note" x="700" y="178">CITY CANVAS RESERVED</text><path class="canvas" d="M640 470 815 365 990 470 815 575Z"/>
+      <rect class="panel" x="1105" y="70" width="310" height="560" rx="16"/><text class="title" x="1130" y="108">Model settings</text><text class="small" x="1130" y="144">INTERFACE SIZE</text><rect class="soft" x="1130" y="160" width="260" height="46" rx="23"/><rect class="accent" x="1217" y="167" width="84" height="32" rx="16"/><text class="small" x="1144" y="188">COMPACT</text><text x="1235" y="188" fill="#07111b" font-size="11">DEFAULT</text><text class="small" x="1322" y="188">LARGE</text><g class="soft"><rect x="1130" y="230" width="260" height="42" rx="8"/><rect x="1130" y="282" width="260" height="42" rx="8"/><rect x="1130" y="334" width="260" height="42" rx="8"/><rect x="1130" y="386" width="260" height="42" rx="8"/></g><text class="small" x="1130" y="476">Bridge v0.3.0-beta.7</text>
+      <rect class="panel" x="540" y="840" width="360" height="44" rx="22"/>
+    </g>
+  </g>
+
+  <!-- Interface size token comparison -->
+  <text class="section" x="70" y="1985">Interface-size token comparison</text>
+  <text class="body" x="70" y="2018">These settings alter density inside components, not the application shell or fixed panel widths.</text>
+
+  <g id="Compact_Tokens" transform="translate(70 2070)">
+    <rect class="panel" width="620" height="450" rx="20"/>
+    <text class="label" x="28" y="42">COMPACT</text><text class="small" x="28" y="68">For additional canvas space on laptops</text>
+    <rect class="soft" x="28" y="95" width="564" height="50" rx="12"/><text x="48" y="126" font-size="16">Body text / supporting text / control height</text>
+    <rect class="accent" x="28" y="170" width="170" height="38" rx="10"/><text x="73" y="195" fill="#07111b" font-size="13">Primary control</text>
+    <rect class="soft" x="218" y="170" width="150" height="38" rx="10"/><text class="body" x="257" y="195">Secondary</text>
+    <rect class="soft" x="28" y="235" width="564" height="155" rx="14"/><text class="small" x="48" y="267">PANEL PADDING / SMALL GAPS / HEADING</text><text x="48" y="310" font-size="21">Compact panel heading</text><text class="body" x="48" y="345">Readable without proportionally enlarging the panel.</text>
+    <text class="note" x="28" y="425">Proposed: 14px body, 34px control, 12px panel padding</text>
+  </g>
+
+  <g id="Default_Tokens" transform="translate(790 2070)">
+    <rect class="panel" width="620" height="450" rx="20"/>
+    <text class="label" x="28" y="42">DEFAULT</text><text class="small" x="28" y="68">Usable with no saved browser settings</text>
+    <rect class="soft" x="28" y="95" width="564" height="54" rx="12"/><text x="48" y="128" font-size="17">Body text / supporting text / control height</text>
+    <rect class="accent" x="28" y="174" width="180" height="42" rx="10"/><text x="72" y="201" fill="#07111b" font-size="14">Primary control</text>
+    <rect class="soft" x="228" y="174" width="158" height="42" rx="10"/><text x="266" y="201" font-size="14">Secondary</text>
+    <rect class="soft" x="28" y="245" width="564" height="160" rx="14"/><text class="small" x="48" y="278">PANEL PADDING / STANDARD GAPS / HEADING</text><text x="48" y="323" font-size="24">Default panel heading</text><text class="body" x="48" y="360">The baseline density for desktop and laptop layouts.</text>
+    <text class="note" x="28" y="435">Proposed: 16px body, 40px control, 16px panel padding</text>
+  </g>
+
+  <g id="Large_Tokens" transform="translate(1510 2070)">
+    <rect class="panel" width="620" height="450" rx="20"/>
+    <text class="label" x="28" y="42">LARGE</text><text class="small" x="28" y="68">Improves readability while preserving panel width</text>
+    <rect class="soft" x="28" y="95" width="564" height="60" rx="12"/><text x="48" y="132" font-size="18">Body text / supporting text / control height</text>
+    <rect class="accent" x="28" y="180" width="190" height="46" rx="10"/><text x="70" y="209" fill="#07111b" font-size="15">Primary control</text>
+    <rect class="soft" x="238" y="180" width="166" height="46" rx="10"/><text x="276" y="209" font-size="15">Secondary</text>
+    <rect class="soft" x="28" y="255" width="564" height="168" rx="14"/><text class="small" x="48" y="290">PANEL PADDING / STANDARD GAPS / HEADING</text><text x="48" y="338" font-size="27">Large panel heading</text><text x="48" y="377" font-size="16">Larger content, with internal scroll when required.</text>
+    <text class="note" x="28" y="455">Proposed: 18px body, 46px control, 20px panel padding</text>
+  </g>
+
+  <g id="Approval_Notes" transform="translate(70 2620)">
+    <rect class="soft" width="2060" height="170" rx="18"/>
+    <text class="label" x="28" y="40">MANUAL CALIBRATION QUESTIONS</text>
+    <text class="body" x="28" y="76">1. Is the 1024 laptop canvas clearance sufficient with the tutorial visible?</text>
+    <text class="body" x="28" y="106">2. Should the Macro console be narrower or wider at any viewport?</text>
+    <text class="body" x="28" y="136">3. Are Compact / Default / Large density steps distinct enough without making Large dominate the viewport?</text>
+  </g>
+</svg>

@@ -6,7 +6,18 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ## Unreleased
 
-- No shipped changes yet.
+### Added
+
+- Expanded the guided tutorial to 32 progressive Micro, Meso, and Macro steps.
+- Added verified camera practice, separate Agent Directory steps, completion feedback, Previous/Next navigation, and persistent Auto-advance.
+- Added guided two-day demonstration progress and snapshot-restoration messaging.
+- Added explicit review completion for Macro explanations and four focused Settings explanation steps.
+
+### Changed
+
+- Rewrote tutorial copy around exact Beta.6 interface labels and stronger model-validity framing.
+- Made Settings toggle reliably and kept Help open for the final tutorial-complete step.
+- Made Play completion respond promptly after the simulation loop starts and slowed restoration messages for readability.
 
 ## v0.3.0-beta.6 - 2026-06-12
 
