@@ -17,6 +17,7 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 - Updated the tutorial to open agent details from the directory and then close the visible detail panel.
 - Aligned the date/time leading cells and separators, positioned the Agent Directory below the playback controls, and tightened its panel and card spacing.
 - Tightened mobile date metadata and speed controls so Week and 128x remain visible.
+- Restored the Agent Directory to the playback-stack width, expanded its filter controls, and docked directory-originated agent details in the directory's former left-side position.
 
 ## v0.3.0-beta.7 - 2026-06-12
 

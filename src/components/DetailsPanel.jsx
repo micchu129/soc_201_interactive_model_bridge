@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value))
 
-export default function DetailsPanel({ building, agent, agents = [], buildings = [], mode = 'micro', networkCategory = 'all', occupants = [], residents = [], onClose, onSelectAgent, onSelectBuilding, onMove, anchor = { x: 50, y: 50 } }) {
+export default function DetailsPanel({ building, agent, agents = [], buildings = [], mode = 'micro', networkCategory = 'all', occupants = [], residents = [], onClose, onSelectAgent, onSelectBuilding, onMove, anchor = { x: 50, y: 50 }, docked = false }) {
   const item = agent || building
   const [position, setPosition] = useState({ x: 62, y: 16 })
   const [sheet, setSheet] = useState(1)
@@ -61,8 +61,8 @@ export default function DetailsPanel({ building, agent, agents = [], buildings =
   const relationButton = (place, fallback) => <button disabled={!place} onClick={() => place && onSelectBuilding({ ...place, label: place.type, purpose: fallback, capacity: 0 })}>{place?.name || 'Not assigned'}</button>
 
   return <>
-    {!mobile && panelBounds && <svg className="detail-connector"><path d={path} /></svg>}
-    <aside ref={panelRef} className={`panel details-panel sheet-${sheet}`} style={mobile ? undefined : { left: `${position.x}%`, top: `${position.y}%` }}>
+    {!mobile && !docked && panelBounds && <svg className="detail-connector"><path d={path} /></svg>}
+    <aside ref={panelRef} className={`panel details-panel sheet-${sheet} ${docked ? 'directory-docked-details' : ''}`} style={mobile || docked ? undefined : { left: `${position.x}%`, top: `${position.y}%` }}>
       <div className="section-heading drag-handle" onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}>
         <span className="move-grip" aria-hidden="true">✥</span><div><p className="kicker">{agent ? 'Selected agent' : item.label}</p><h2>{agent ? agent.name : building.name}</h2></div><button className="icon-button" onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onClose() }}>×</button>
       </div>

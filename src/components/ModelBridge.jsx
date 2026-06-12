@@ -63,6 +63,7 @@ export default function ModelBridge() {
   const [followedAgent, setFollowedAgent] = useState(null)
   const [findTarget, setFindTarget] = useState(null)
   const [detailAnchor, setDetailAnchor] = useState({ x: 50, y: 50 })
+  const [directoryDockedDetails, setDirectoryDockedDetails] = useState(false)
   const [panel, setPanel] = useState(null)
   const [tutorialEnabled, setTutorialEnabled] = useState(() => localStorage.getItem(storageKey('tutorial-enabled')) !== 'false')
   const [savedTutorial] = useState(() => JSON.parse(localStorage.getItem(storageKey('tutorial-session-v1')) || 'null'))
@@ -107,7 +108,7 @@ export default function ModelBridge() {
 
   const tutorial = tutorialStep == null ? null : tutorialSteps[tutorialStep]
   const noteTutorialAction = action => setTutorialActions(current => ({ ...current, [action]: true }))
-  const clearSelection = () => { setSelectedAgent(null); setSelectedBuilding(null); setFollowedAgent(null); setHighlightedAgent(null); setHighlightedBuilding(null) }
+  const clearSelection = () => { setSelectedAgent(null); setSelectedBuilding(null); setFollowedAgent(null); setHighlightedAgent(null); setHighlightedBuilding(null); setDirectoryDockedDetails(false) }
   const closePanels = () => { setPanel(null); noteTutorialAction('close-panel') }
   function finishTutorial() {
     setTutorialStep(null); setTutorialActions({ 'unlock-agent': true, 'unlock-building': true })
@@ -289,6 +290,7 @@ export default function ModelBridge() {
     const directorySelection = source === 'directory' && tutorial?.requirement === 'directory-select'
     if (tutorial && !tutorialActions['unlock-agent'] && tutorial.requirement !== 'agent' && !directorySelection) return
     const agent = state.agents.find(item => item.id === id)
+    setDirectoryDockedDetails(source === 'directory')
     setPanel(null); setFollowedAgent(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setHighlightedBuilding(agent?.insideBuildingId || null)
     if (directorySelection) noteTutorialAction('directory-select')
     else noteTutorialAction(state.mode === 'meso' ? 'meso-agent' : 'agent')
@@ -296,17 +298,18 @@ export default function ModelBridge() {
   }
   const selectBuilding = building => {
     if (!building) { clearSelection(); return }
+    setDirectoryDockedDetails(false)
     setPanel(null); setFollowedAgent(null); setSelectedAgent(null); setSelectedBuilding(building); setHighlightedBuilding(building.id)
     const buildingAction = state.mode === 'meso' ? 'meso-building' : 'building'
     if (!tutorial || tutorial.requirement === buildingAction) noteTutorialAction(buildingAction)
     noteTutorialAction('unlock-building')
   }
-  const followAgent = id => { setPanel(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setFollowedAgent(id); setFindTarget(null); setState(current => ({ ...current, mode: 'micro' })) }
+  const followAgent = id => { setDirectoryDockedDetails(true); setPanel(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setFollowedAgent(id); setFindTarget(null); setState(current => ({ ...current, mode: 'micro' })) }
   const findAgent = id => {
     const agent = state.agents.find(item => item.id === id)
     const building = agent?.insideBuildingId ? state.world.buildings.find(item => item.id === agent.insideBuildingId) : null
     if (!agent) return
-    setPanel(null); setFollowedAgent(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setHighlightedBuilding(building?.id || null)
+    setDirectoryDockedDetails(true); setPanel(null); setFollowedAgent(null); setSelectedAgent(id); setSelectedBuilding(null); setHighlightedAgent(id); setHighlightedBuilding(building?.id || null)
     setFindTarget({ x: building?.x ?? agent.position.x, z: building?.z ?? agent.position.z, key: Date.now() }); setCameraPreset('custom'); setCameraResetKey(key => key + 1)
   }
   const noteCameraPractice = ({ type, amount }) => {
@@ -362,7 +365,7 @@ export default function ModelBridge() {
     {state.mode === 'population' && <section className="center-control panel"><p className="kicker">Population initialization</p><h2>{state.populationStage ? 'Assigning agents...' : 'Generate the population'}</h2><p>Populate homes, streets, venues, and alcohol-stage distributions.</p><label className="check-row centered-check"><input type="checkbox" checked={tutorialEnabled} onChange={event => { setTutorialEnabled(event.target.checked); localStorage.setItem(storageKey('tutorial-enabled'), String(event.target.checked)) }} /> Tutorial after generation</label><button className="button primary" disabled={state.populationStage > 0} onClick={generatePopulation}>Generate population</button><button className="advanced-link" disabled={state.populationStage > 0} onClick={() => openAdvanced('population')}>Advanced options</button></section>}
     {tutorialStep == null && ['micro', 'meso'].includes(state.mode) && !dismissedCaptions[state.mode] && <section className="mode-caption panel"><button className="caption-close" onClick={() => dismissCaption(state.mode)}>×</button><p className="kicker">{state.mode} layer</p><h2>{state.mode === 'micro' ? 'Follow individual lives' : 'See networks and shared places'}</h2><p>{state.mode === 'micro' ? 'Click an agent to inspect their current state.' : 'Orbit the city to understand shared routes and places.'}</p></section>}
     {state.mode === 'macro' && <PolicyConsole state={{ ...state, calendar: displayCalendar }} clockTimeLabel={displayTime} onToggleClockFormat={() => setClockFormat(current => current === '24h' ? '12h' : '24h')} tutorialHighlight={tutorial?.mode === 'macro' ? tutorial.highlight : null} onSpeed={setSpeed} onApply={policies => { setState(current => ({ ...current, pendingPolicies: policies })); noteTutorialAction('policy') }} />}
-    {panel == null && state.mode !== 'macro' && <DetailsPanel building={selectedBuilding} agent={detailAgent} agents={state.agents} buildings={state.world.buildings} mode={state.mode} networkCategory={networkCategory} anchor={detailAnchor} occupants={occupants} residents={residents} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} onMove={() => noteTutorialAction('move-panel')} onClose={() => { noteTutorialAction(selectedAgent ? 'close-agent' : 'close-building'); clearSelection() }} />}
+    {panel == null && state.mode !== 'macro' && <DetailsPanel building={selectedBuilding} agent={detailAgent} agents={state.agents} buildings={state.world.buildings} mode={state.mode} networkCategory={networkCategory} anchor={detailAnchor} docked={directoryDockedDetails} occupants={occupants} residents={residents} onSelectAgent={selectAgent} onSelectBuilding={selectBuilding} onMove={() => noteTutorialAction('move-panel')} onClose={() => { noteTutorialAction(selectedAgent ? 'close-agent' : 'close-building'); clearSelection() }} />}
     {panel == null && state.worldStage > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <nav className={`camera-presets panel ${tutorial?.highlight === 'views' ? 'tutorial-highlight' : ''}`} aria-label="Camera views"><span>Views</span>{[['default', 'Default', '◇'], ['street', 'Street', '▥'], ['top', 'Top', '▦'], ['custom', 'Custom', '✥']].map(([preset, label, icon]) => <button key={preset} className={(cameraPreset || 'default') === preset ? 'active' : ''} title={label} disabled={preset === 'custom'} onClick={() => { setFollowedAgent(null); setFindTarget(null); setCameraPreset(preset === 'default' ? null : preset); setCameraResetKey(key => key + 1); noteTutorialAction('camera-preset') }}><b>{icon}</b><small>{label}</small></button>)}</nav>}
     {state.agents.length > 0 && state.mode !== 'hero' && state.mode !== 'macro' && <div className="time-control-stack"><section className="date-strip panel"><strong>Day {String(displayCalendar.dayNumber).padStart(3, '0')}</strong><div className="date-metadata"><span>{displayCalendar.day}</span><i>·</i><span>{displayCalendar.period}</span><i>·</i><span>Week {displayCalendar.week}</span></div></section><footer className="sim-controls panel"><button className="clock-display" title={`Switch to ${clockFormat === '24h' ? '12-hour' : '24-hour'} time`} onClick={() => setClockFormat(current => current === '24h' ? '12h' : '24h')}>{displayTime}</button><SlidingToggleGroup className="speed-controls" buttonClassName="speed-toggle-button" ariaLabel="Simulation speed" items={speedControlItems} value={state.speed} onChange={setSpeed} /></footer>{panel !== 'directory' && <button className="directory-button panel" onClick={() => { closePanels(); setPanel('directory'); noteTutorialAction('directory-open') }}>☷ Agent Directory</button>}</div>}
     {state.worldStage > 0 && state.mode !== 'hero' && <button className="help-button panel" onClick={() => { closePanels(); setPanel('camera-help'); noteTutorialAction('help') }}>?</button>}
