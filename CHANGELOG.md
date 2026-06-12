@@ -19,6 +19,7 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 - Tightened mobile date metadata and speed controls so Week and 128x remain visible.
 - Restored the Agent Directory to the playback-stack width, expanded its filter controls, and docked directory-originated agent details in the directory's former left-side position.
 - Moved directory-originated agent details below the persistent Agent Directory launch button.
+- Sized the Views panel width to 1.5 times the shared day-indicator control height.
 
 ## v0.3.0-beta.7 - 2026-06-12
 
