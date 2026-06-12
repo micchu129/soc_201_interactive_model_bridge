@@ -13,7 +13,11 @@ SimARC port.
 ## Environment And Commands
 
 - Use Node.js 24.
-- Install locked dependencies with `npm ci --include=optional`.
+- In Codex Cloud setup scripts, run `nvm use 24` before npm commands.
+- In Codex Cloud, install dependencies with
+  `npm install --include=optional --no-audit --no-fund` to match deployment.
+- For local clean-install checks, use `npm ci --include=optional` when the
+  platform-generated lockfile permits it.
 - Start local development with `npm run dev`.
 - Run `npm run lint` and `npm run build` before finalizing code changes.
 - `npm run build` writes generated output to `dist/`; do not commit it.

@@ -10,6 +10,7 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 - Kept the interactive Top camera preset on the normal Y-up world axis so users can orbit back toward the horizon without flipping the city upside down.
 - Normalized older saved non-Macro camera snapshots to prevent previously inverted views from returning.
+- Declared Node.js 24 for local and Cloud environments and documented the deployment-compatible Cloud install command.
 
 ## v0.3.0-beta.8 - 2026-06-13
 
