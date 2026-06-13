@@ -12,13 +12,13 @@ SimARC port.
 
 ## Environment And Commands
 
-- Use Node.js 24.
-- In Codex Cloud, select Node.js 24 in the environment's language runtime
+- Use Node.js 22.
+- In Codex Cloud, select Node.js 22 in the environment's language runtime
   settings. The setup-script shell does not expose `nvm`.
-- In Codex Cloud setup scripts, verify `node --version` reports Node.js 24
+- In Codex Cloud setup scripts, verify `node --version` reports Node.js 22
   before npm commands.
 - A suitable Codex Cloud setup script is:
-  `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)"`
+  `node -e "if (process.versions.node.split('.')[0] !== '22') process.exit(1)"`
   followed by `npm install --include=optional --no-audit --no-fund`.
 - In Codex Cloud, install dependencies with
   `npm install --include=optional --no-audit --no-fund` to match deployment.

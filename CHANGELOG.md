@@ -8,7 +8,7 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ### Fixed
 
-- Corrected Codex Cloud setup guidance to select Node.js 24 in the environment runtime settings instead of calling the unavailable `nvm` shell function.
+- Aligned the declared runtime and Codex Cloud setup guidance with the selectable Node.js 22 environment instead of calling the unavailable `nvm` shell function.
 
 ## v0.3.0-beta.8.1 - 2026-06-13
 

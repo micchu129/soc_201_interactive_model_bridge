@@ -50,7 +50,7 @@ Outputs are illustrative and should not be interpreted as validated causal or po
 
 Requirements:
 
-- Node.js 24
+- Node.js 22
 - npm
 
 ```bash
