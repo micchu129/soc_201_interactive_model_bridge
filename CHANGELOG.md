@@ -6,6 +6,8 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ## Unreleased
 
+## v0.3.0-beta.8.1 - 2026-06-13
+
 ### Fixed
 
 - Kept the interactive Top camera preset on the normal Y-up world axis so users can orbit back toward the horizon without flipping the city upside down.

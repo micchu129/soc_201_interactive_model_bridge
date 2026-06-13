@@ -37,6 +37,7 @@ changes should not be mixed with broad interface refactors unless required.
 - `v0.3.0-beta.6` responsive UI foundations are released.
 - `v0.3.0-beta.7` tutorial and explanation refinement is released.
 - `v0.3.0-beta.8` Agent Directory redesign is released.
+- `v0.3.0-beta.8.1` Top-view camera and Codex Cloud setup fixes are released.
 - Beta.7 expanded the guided sequence to 32 steps and aligned its wording with
   the executable Beta.6 interface.
 
