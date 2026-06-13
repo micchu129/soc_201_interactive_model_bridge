@@ -8,7 +8,7 @@ The project follows semantic-version-style prerelease numbering. For example, `v
 
 ### Fixed
 
-- Aligned the declared runtime and Codex Cloud setup guidance with the selectable Node.js 22 environment instead of calling the unavailable `nvm` shell function.
+- Aligned the declared runtime and Codex Cloud setup guidance with the selectable Node.js 22 environment, including copy-ready setup and maintenance scripts, instead of calling the unavailable `nvm` shell function.
 
 ## v0.3.0-beta.8.1 - 2026-06-13
 
